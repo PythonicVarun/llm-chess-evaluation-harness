@@ -103,6 +103,18 @@ If you are running a local model server compatible with the OpenAI API:
 python chess_eval.py --model meta-llama/Meta-Llama-3-8B-Instruct --reasoning-effort medium --base-url http://localhost:8000/v1 --games 5 --elo 1320
 ```
 
+## 🪙 Token & Cost Summarization
+
+At the end of each evaluation match, the harness prints a detailed **Token Usage & Cost Summary** in your terminal. This shows the total prompt (input) tokens, completion (output) tokens, and the estimated total cost in USD for the model run.
+
+Model costs are independently stored in `eval_config.py` and are based on the following official developer pricing guides:
+
+- **OpenAI Models**: Pricing is retrieved from the official [OpenAI Developer Pricing](https://developers.openai.com/api/docs/pricing).
+- **Google Gemini Models**: Pricing is retrieved from the official [Google Gemini API Pricing](https://ai.google.dev/gemini-api/docs/pricing).
+- **Anthropic Claude Models**: Pricing is retrieved from the official [Anthropic Claude Pricing](https://platform.claude.com/docs/en/about-claude/pricing).
+
+For custom or local models where pricing is not known, the estimated cost defaults to `$0.00000`. You can configure or override custom model costs by editing the `model_pricing` dictionary in `eval_config.py` or overriding it in your custom code.
+
 ## 🏗️ Architecture
 
 - 🎬 `chess_eval.py`: The orchestrator and UI layer. It starts the MCP server, initializes Stockfish, queries the LLM for moves, and updates the dashboard.
