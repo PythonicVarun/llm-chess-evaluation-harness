@@ -103,6 +103,27 @@ If you are running a local model server compatible with the OpenAI API:
 python chess_eval.py --model meta-llama/Meta-Llama-3-8B-Instruct --reasoning-effort medium --base-url http://localhost:8000/v1 --games 5 --elo 1320
 ```
 
+## 📊 Evaluation Results
+
+Below is a summary of the matches played between various LLM models and Stockfish at different target ELO levels. The table shows the number of wins, losses, draws, total games played, and the resulting win rate for each model at each ELO level.
+
+| Model | Stockfish ELO | Wins | Losses | Draws | Total Games | Win Rate |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **gemini-3.5-flash** | 1500 | 2 | 1 | 0 | 3 | 66.7% |
+| **gpt-5.4-nano** | 1500 | 0 | 2 | 0 | 2 | 0.0% |
+| **gemini-3.5-flash** | 1450 | 1 | 2 | 0 | 3 | 33.3% |
+| **gemini-3.5-flash** | 1400 | 1 | 1 | 1 | 3 | 33.3% |
+| **gemini-3.5-flash** | 1320 | 2 | 1 | 0 | 3 | 66.7% |
+| **gemini-3.1-flash-lite** | 1320 | 0 | 3 | 0 | 3 | 0.0% |
+| **gpt-4.1** | 1320 | 0 | 3 | 0 | 3 | 0.0% |
+| **gpt-4.1-mini** | 1320 | 0 | 2 | 0 | 2 | 0.0% |
+| **gpt-4.1-nano** | 1320 | 0 | 3 | 0 | 3 | 0.0% |
+| **gpt-4o** | 1320 | 0 | 3 | 0 | 3 | 0.0% |
+| **gpt-4o-mini** | 1320 | 0 | 3 | 0 | 3 | 0.0% |
+| **gpt-5.4** | 1320 | 0 | 3 | 0 | 3 | 0.0% |
+| **gpt-5.4-mini** | 1320 | 0 | 3 | 0 | 3 | 0.0% |
+| **gpt-5.4-nano** | 1320 | 0 | 3 | 0 | 3 | 0.0% |
+
 ## 🪙 Token & Cost Summarization
 
 At the end of each evaluation match, the harness prints a detailed **Token Usage & Cost Summary** in your terminal. This shows the total prompt (input) tokens, completion (output) tokens, and the estimated total cost in USD for the model run.
