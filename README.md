@@ -10,7 +10,7 @@ It supports any OpenAI-compatible API endpoint, allowing you to test OpenAI mode
 - **🛠️ MCP Backend:** Chess state and rules are fully mediated by a local MCP server (`chess_mcp_server.py`), providing robust move validation and state management.
 - **🐟 Stockfish Integration:** Test against Stockfish with configurable ELO levels to find the exact rating of your LLM.
 - **🛡️ Robust Error Handling:** Automatically detects illegal LLM moves and prompts the LLM to retry, tracking "illegal move attempts" as a metric.
-- **💾 PGN Export:** Automatically saves all finished games to standard Portable Game Notation (PGN) files for later review in any chess GUI.
+- **💾 PGN Export:** Automatically saves all finished games to standard Portable Game Notation (PGN) files for later review in any chess GUI. Filenames include the model id and Stockfish ELO for easy sorting.
 
 ## 📋 Requirements
 
@@ -63,7 +63,7 @@ You can override the default configuration using CLI arguments:
 - `--api-key <key>`: 🗝️ Override the API key explicitly.
 - `--stockfish <path>`: 📍 Path to the Stockfish binary.
 - `--output-dir <path>`: 📁 Directory to save PGN files (default: `pgn_output`).
-- `--log-level <DEBUG|INFO|WARNING|ERROR>`: 📝 Set internal logging verbosity (saved to `harness.log`).
+- `--log-level <DEBUG|INFO|WARNING|ERROR>`: 📝 Set internal logging verbosity (saved to `logs/<model>_elo<stockfish-elo>.log`).
 
 ### 💡 Example: Testing a local model via vLLM
 

@@ -37,4 +37,5 @@ class EvalConfig:
 
     # Output settings
     output_dir: Path = field(default_factory=lambda: Path("pgn_output"))
+    log_dir: Path = field(default_factory=lambda: Path("logs"))
     log_level: str = "INFO"  # DEBUG | INFO | WARNING | ERROR

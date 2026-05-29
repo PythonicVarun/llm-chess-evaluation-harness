@@ -28,6 +28,7 @@ when the LLM API is taking a few seconds.
 import asyncio
 import json
 import logging
+import re
 import sys
 import textwrap
 import time
@@ -59,12 +60,21 @@ log = logging.getLogger("harness")
 console = Console(highlight=False)
 
 
-def _setup_logging(level: str, log_file: str = "harness.log") -> None:
+def _build_log_path(cfg: EvalConfig) -> Path:
+    log_dir = cfg.log_dir
+    if not log_dir.is_absolute():
+        log_dir = Path(__file__).parent / log_dir
+    return log_dir / f"{_slugify_filename(cfg.llm_model)}_elo{cfg.stockfish_elo}.log"
+
+
+def _setup_logging(level: str, log_file: str | Path = "harness.log") -> None:
     """
     Send log records to a file (never to stdout/stderr) so they don't
     interfere with the Rich live display.
     """
-    fh = logging.FileHandler(log_file, mode="a", encoding="utf-8")
+    log_path = Path(log_file)
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    fh = logging.FileHandler(log_path, mode="a", encoding="utf-8")
     fh.setFormatter(
         logging.Formatter(
             "%(asctime)s  %(levelname)-8s  %(name)s  %(message)s",
@@ -308,6 +318,10 @@ def _build_llm_client(cfg: EvalConfig) -> AsyncOpenAI:
         kwargs["base_url"] = cfg.base_url
 
     return AsyncOpenAI(**kwargs)
+
+
+def _slugify_filename(value: str) -> str:
+    return re.sub(r"[^A-Za-z0-9._-]+", "_", value).strip("._-") or "model"
 
 
 # LLM move prompting
@@ -640,7 +654,11 @@ async def play_one_game(
 
     cfg.output_dir.mkdir(parents=True, exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    pgn_path = cfg.output_dir / f"game_{game_index:03d}_{ts}.pgn"
+    model_slug = _slugify_filename(cfg.llm_model)
+    pgn_path = (
+        cfg.output_dir
+        / f"game_{game_index:03d}_{model_slug}_elo{cfg.stockfish_elo}_{ts}.pgn"
+    )
     pgn_path.write_text(pgn_text, encoding="utf-8")
     log.info("PGN saved → %s", pgn_path)
 
@@ -658,7 +676,7 @@ async def play_one_game(
 
 
 # Summary table (printed after Live exits)
-def _print_summary(results: list[GameResult], llm_color: str) -> None:
+def _print_summary(results: list[GameResult], llm_color: str, log_file: Path) -> None:
     sf_color = "black" if llm_color == "white" else "white"
     llm_wins = sum(1 for r in results if r.winner == llm_color)
     sf_wins = sum(1 for r in results if r.winner == sf_color)
@@ -717,7 +735,7 @@ def _print_summary(results: list[GameResult], llm_color: str) -> None:
         f"Stockfish wins: [red]{sf_wins}[/red]   "
         f"Draws: [yellow]{draws}[/yellow]"
     )
-    console.print("  Detailed logs → [dim]harness.log[/dim]")
+    console.print(f"  Detailed logs → [dim]{log_file}[/dim]")
     console.print()
 
 
@@ -790,7 +808,7 @@ async def run_evaluation(cfg: EvalConfig) -> list[GameResult]:
                     transport.close()
                     log.info("Stockfish engine shut down.")
 
-    _print_summary(results, cfg.llm_color)
+    _print_summary(results, cfg.llm_color, _build_log_path(cfg))
     return results
 
 
@@ -836,7 +854,8 @@ def main() -> None:
     if args.max_tokens:
         cfg.llm_max_tokens = args.max_tokens
 
-    _setup_logging(args.log_level or cfg.log_level)
+    log_file = _build_log_path(cfg)
+    _setup_logging(args.log_level or cfg.log_level, log_file)
     asyncio.run(run_evaluation(cfg))
 
 
