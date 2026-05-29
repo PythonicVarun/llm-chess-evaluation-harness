@@ -357,26 +357,26 @@ def _build_user_prompt(state: dict, llm_color: str, attempt: int) -> str:
     san_display = ", ".join(legal_san[:40]) + ("  [...]" if len(legal_san) > 40 else "")
 
     return textwrap.dedent(f"""\
-        You are playing as {llm_color.upper()}.
-        {retry_notice}
-        Move number : {state.get("fullmove_number", "?")}  \
+You are playing as {llm_color.upper()}.
+{retry_notice}
+Move number : {state.get("fullmove_number", "?")}  \
 Plies played : {state.get("move_count", "?")}
-        {check_notice}
+{check_notice}
 
-        Board (white pieces UPPERCASE, black pieces lowercase):
-        {state.get("ascii_board", "")}
+Board (white pieces UPPERCASE, black pieces lowercase):
+{state.get("ascii_board", "")}
 
-        FEN : {state.get("fen", "")}
+FEN : {state.get("fen", "")}
 
-        Move history : {move_history_str}
+Move history : {move_history_str}
 
-        Legal moves ({len(legal_uci)} total):
-          UCI : {uci_display}
-          SAN : {san_display}
+Legal moves ({len(legal_uci)} total):
+    UCI : {uci_display}
+    SAN : {san_display}
 
-        Respond with JSON only:
-        {{"move": "<uci>", "reason": "<one sentence>"}}
-    """)
+Respond with JSON only:
+{{"move": "<uci>", "reason": "<one sentence>"}}
+""")
 
 
 def _parse_llm_response(raw: str) -> tuple[str | None, str]:
@@ -426,7 +426,7 @@ async def _ask_llm_for_move(
 
     response = await client.chat.completions.create(
         model=cfg.llm_model,
-        max_tokens=cfg.llm_max_tokens,
+        max_completion_tokens=cfg.llm_max_tokens,
         temperature=0.2,
         messages=[
             {"role": "system", "content": _SYSTEM_PROMPT},
@@ -685,7 +685,9 @@ def _print_summary(results: list[GameResult], llm_color: str) -> None:
         res_style = (
             "green"
             if r.winner == llm_color
-            else "red" if r.winner == sf_color else "yellow"
+            else "red"
+            if r.winner == sf_color
+            else "yellow"
         )
         tbl.add_row(
             str(r.game_index),
