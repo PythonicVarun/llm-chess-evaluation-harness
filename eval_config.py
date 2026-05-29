@@ -19,6 +19,7 @@ class EvalConfig:
     llm_model: str = "gpt-4o-mini"
 
     llm_max_tokens: int = 256
+    llm_reasoning_effort: str | None = None
 
     # Stockfish settings
     stockfish_path: str = field(

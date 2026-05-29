@@ -56,6 +56,7 @@ By default, this will play a 3-game match using `gpt-4o-mini` as White against S
 You can override the default configuration using CLI arguments:
 
 - `--model <name>`: 🧠 LLM model name (default: `gpt-4o-mini`).
+- `--reasoning-effort <low|medium|high>`: 🧠 Reasoning effort for supported models.
 - `--color <white|black>`: 🎨 The color the LLM will play (default: `white`).
 - `--games <n>`: 🔢 Number of games to play in the match (default: `3`).
 - `--elo <n>`: 📈 Stockfish target ELO (default: `1500`).
@@ -70,7 +71,7 @@ You can override the default configuration using CLI arguments:
 If you are running a local model server compatible with the OpenAI API:
 
 ```bash
-python chess_eval.py --model meta-llama/Meta-Llama-3-8B-Instruct --base-url http://localhost:8000/v1 --games 5 --elo 1320
+python chess_eval.py --model meta-llama/Meta-Llama-3-8B-Instruct --reasoning-effort medium --base-url http://localhost:8000/v1 --games 5 --elo 1320
 ```
 
 ## 🏗️ Architecture

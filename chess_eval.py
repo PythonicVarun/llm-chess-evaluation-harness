@@ -445,15 +445,18 @@ async def _ask_llm_for_move(
     user_msg = _build_user_prompt(state, llm_color, attempt)
     log.debug("LLM prompt (attempt %d):\n%s", attempt, user_msg)
 
-    response = await client.chat.completions.create(
-        model=cfg.llm_model,
-        max_completion_tokens=cfg.llm_max_tokens,
-        temperature=0.2,
-        messages=[
+    request_kwargs: dict[str, Any] = {
+        "model": cfg.llm_model,
+        "temperature": 0.2,
+        "messages": [
             {"role": "system", "content": _SYSTEM_PROMPT},
             {"role": "user", "content": user_msg},
         ],
-    )
+    }
+    if cfg.llm_reasoning_effort:
+        request_kwargs["reasoning_effort"] = cfg.llm_reasoning_effort
+
+    response = await client.chat.completions.create(**request_kwargs)
 
     raw_text = (
         (response.choices[0].message.content or "").strip() if response.choices else ""
@@ -765,6 +768,10 @@ async def run_evaluation(cfg: EvalConfig) -> list[GameResult]:
 
     log.info("LLM endpoint     : %s", cfg.base_url or "OpenAI default")
     log.info("LLM model        : %s", cfg.llm_model)
+    log.info(
+        "LLM reasoning    : %s",
+        cfg.llm_reasoning_effort or "default",
+    )
     log.info("LLM plays        : %s", cfg.llm_color.upper())
     log.info("Stockfish binary : %s", cfg.stockfish_path)
     log.info("Stockfish ELO    : %d", cfg.stockfish_elo)
@@ -831,6 +838,11 @@ def main() -> None:
     parser.add_argument("--games", type=int, default=None)
     parser.add_argument("--elo", type=int, default=None)
     parser.add_argument("--model", type=str, default=None)
+    parser.add_argument(
+        "--reasoning-effort",
+        choices=["low", "medium", "high"],
+        default=None,
+    )
     parser.add_argument("--base-url", type=str, default=None)
     parser.add_argument("--api-key", type=str, default=None)
     parser.add_argument("--output-dir", type=str, default=None)
@@ -850,6 +862,8 @@ def main() -> None:
         cfg.stockfish_elo = args.elo
     if args.model:
         cfg.llm_model = args.model
+    if args.reasoning_effort:
+        cfg.llm_reasoning_effort = args.reasoning_effort
     if args.base_url:
         cfg.base_url = args.base_url
     if args.api_key:
