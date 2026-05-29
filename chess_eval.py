@@ -100,6 +100,8 @@ class GameResult:
     llm_illegal_attempts: int
     elapsed_seconds: float
     pgn_path: Path | None
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
 
 
 @dataclass
@@ -433,7 +435,7 @@ async def _ask_llm_for_move(
     attempt: int,
     display: GameDisplay,
     move_num: int,
-) -> tuple[str | None, str]:
+) -> tuple[str | None, str, int, int]:
     # Show spinner in the status line while we wait for the API
     display.set_status(
         f"⠿  Asking [bold]{cfg.llm_model}[/bold] for move {move_num}"
@@ -463,10 +465,16 @@ async def _ask_llm_for_move(
     )
     log.debug("LLM raw response: %s", raw_text)
 
+    prompt_tokens = 0
+    completion_tokens = 0
+    if hasattr(response, "usage") and response.usage:
+        prompt_tokens = getattr(response.usage, "prompt_tokens", 0) or 0
+        completion_tokens = getattr(response.usage, "completion_tokens", 0) or 0
+
     uci, reason = _parse_llm_response(raw_text)
     if uci is None:
         log.warning("Could not parse a UCI move from: %s", raw_text)
-    return uci, reason
+    return uci, reason, prompt_tokens, completion_tokens
 
 
 # Single-game orchestration
@@ -482,6 +490,8 @@ async def play_one_game(
     llm_is_white = cfg.llm_color.lower() == "white"
     llm_illegal = 0
     ply = 0
+    game_prompt_tokens = 0
+    game_completion_tokens = 0
     t_start = time.perf_counter()
 
     display.new_game(game_index, t_start)
@@ -522,7 +532,7 @@ async def play_one_game(
             applied = False
 
             for attempt in range(cfg.max_move_retries):
-                uci_candidate, reason = await _ask_llm_for_move(
+                uci_candidate, reason, prompt_tok, comp_tok = await _ask_llm_for_move(
                     llm_client,
                     cfg,
                     state,
@@ -531,6 +541,8 @@ async def play_one_game(
                     display,
                     move_num,
                 )
+                game_prompt_tokens += prompt_tok
+                game_completion_tokens += comp_tok
 
                 if not uci_candidate:
                     log.warning("[attempt %d] LLM gave no parseable move.", attempt + 1)
@@ -682,17 +694,44 @@ async def play_one_game(
         llm_illegal_attempts=llm_illegal,
         elapsed_seconds=elapsed,
         pgn_path=pgn_path,
+        prompt_tokens=game_prompt_tokens,
+        completion_tokens=game_completion_tokens,
     )
 
 
 # Summary table (printed after Live exits)
-def _print_summary(results: list[GameResult], llm_color: str, log_file: Path) -> None:
+def _print_summary(results: list[GameResult], cfg: EvalConfig, log_file: Path) -> None:
+    llm_color = cfg.llm_color
     sf_color = "black" if llm_color == "white" else "white"
     llm_wins = sum(1 for r in results if r.winner == llm_color)
     sf_wins = sum(1 for r in results if r.winner == sf_color)
     draws = sum(1 for r in results if r.winner == "draw")
     total_ill = sum(r.llm_illegal_attempts for r in results)
     total_sec = sum(r.elapsed_seconds for r in results)
+
+    total_prompt = sum(r.prompt_tokens for r in results)
+    total_completion = sum(r.completion_tokens for r in results)
+    total_tokens = total_prompt + total_completion
+
+    # Calculate cost
+    model_name = cfg.llm_model
+    pricing = cfg.model_pricing.get(model_name)
+    if pricing is None:
+        # Fallback search - case insensitive or substring
+        for name, price in cfg.model_pricing.items():
+            if name.lower() in model_name.lower() or model_name.lower() in name.lower():
+                pricing = price
+                break
+
+    if pricing:
+        input_price_per_1m, output_price_per_1m = pricing
+        input_cost = (total_prompt / 1_000_000) * input_price_per_1m
+        output_cost = (total_completion / 1_000_000) * output_price_per_1m
+        total_cost = input_cost + output_cost
+        cost_str = f"${total_cost:.5f}"
+    else:
+        total_cost = 0.0
+        cost_str = "unknown (pricing not found)"
 
     tbl = Table(
         title=f"[bold cyan]Evaluation Summary — {len(results)} game(s)[/bold cyan]",
@@ -742,6 +781,14 @@ def _print_summary(results: list[GameResult], llm_color: str, log_file: Path) ->
         f"  LLM wins: [green]{llm_wins}[/green]   "
         f"Stockfish wins: [red]{sf_wins}[/red]   "
         f"Draws: [yellow]{draws}[/yellow]"
+    )
+    console.print()
+    console.print(
+        f"  [bold]Token Usage & Cost Summary ({cfg.llm_model}):[/bold]\n"
+        f"    Prompt Tokens:     {total_prompt:,}\n"
+        f"    Completion Tokens: {total_completion:,}\n"
+        f"    Total Tokens:      {total_tokens:,}\n"
+        f"    Estimated Cost:    [green]{cost_str}[/green]"
     )
     console.print(f"  Detailed logs → [dim]{log_file}[/dim]")
     console.print()
@@ -820,7 +867,7 @@ async def run_evaluation(cfg: EvalConfig) -> list[GameResult]:
                     transport.close()
                     log.info("Stockfish engine shut down.")
 
-    _print_summary(results, cfg.llm_color, _build_log_path(cfg))
+    _print_summary(results, cfg, _build_log_path(cfg))
     return results
 
 
