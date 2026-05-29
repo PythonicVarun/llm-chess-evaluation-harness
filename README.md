@@ -41,6 +41,35 @@ LLM_API_KEY=your_api_key_here
 # STOCKFISH_PATH=/path/to/custom/stockfish
 ```
 
+## ⚡ Direct Execution (No Cloning/Installation Required)
+
+You can run the harness or the MCP server directly from the GitHub repository using **`uv`** or **`uvx`** without cloning the project.
+
+### 1. Using `uv run`
+
+Run the evaluation harness command directly:
+
+```bash
+uv run --with git+https://github.com/PythonicVarun/llm-chess-evaluation-harness.git eval [options]
+```
+
+### 2. Using `uvx` (or `uv tool run`)
+
+Run the evaluation harness:
+
+```bash
+uvx --from git+https://github.com/PythonicVarun/llm-chess-evaluation-harness.git eval [options]
+```
+
+Or start the standalone MCP Chess server:
+
+```bash
+uvx --from git+https://github.com/PythonicVarun/llm-chess-evaluation-harness.git mcp
+```
+
+> [!NOTE]
+> Make sure your `OPENAI_API_KEY` (or `LLM_API_KEY`) and `STOCKFISH_PATH` environment variables are exported in your terminal before running the direct command.
+
 ## 🎮 Usage
 
 Run the evaluation harness using the main script:

@@ -63,7 +63,7 @@ console = Console(highlight=False)
 def _build_log_path(cfg: EvalConfig) -> Path:
     log_dir = cfg.log_dir
     if not log_dir.is_absolute():
-        log_dir = Path(__file__).parent / log_dir
+        log_dir = Path.cwd() / log_dir
     return log_dir / f"{_slugify_filename(cfg.llm_model)}_elo{cfg.stockfish_elo}.log"
 
 
@@ -713,9 +713,7 @@ def _print_summary(results: list[GameResult], llm_color: str, log_file: Path) ->
         res_style = (
             "green"
             if r.winner == llm_color
-            else "red"
-            if r.winner == sf_color
-            else "yellow"
+            else "red" if r.winner == sf_color else "yellow"
         )
         tbl.add_row(
             str(r.game_index),
