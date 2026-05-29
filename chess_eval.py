@@ -119,6 +119,7 @@ class _DisplayState:
     illegal: int = 0
     result: str = ""
     elapsed: float = 0.0
+    started_at: float | None = None
 
 
 class GameDisplay:
@@ -144,7 +145,7 @@ class GameDisplay:
     def __exit__(self, *args):
         self._live.__exit__(*args)
 
-    def new_game(self, game_index: int) -> None:
+    def new_game(self, game_index: int, started_at: float | None = None) -> None:
         s = self._state
         s.game_index = game_index
         s.board_str = ""
@@ -156,6 +157,7 @@ class GameDisplay:
         s.illegal = 0
         s.result = ""
         s.elapsed = 0.0
+        s.started_at = started_at
         self.set_status(f"Game {game_index} starting…", "cyan")
 
     def update_from_state(self, state: dict, plies: int, illegal: int) -> None:
@@ -267,7 +269,12 @@ class GameDisplay:
         status_text = Text.from_markup(f"\n{st.status}", style=st.status_style)
 
         # Stats footer
-        elapsed_str = f"{st.elapsed:.1f}s" if st.elapsed else "…"
+        if st.result:
+            elapsed_str = f"{st.elapsed:.1f}s"
+        elif st.started_at is not None:
+            elapsed_str = f"{time.perf_counter() - st.started_at:.1f}s"
+        else:
+            elapsed_str = "…"
         stats_text = Text(
             f"\nPlies: {st.plies}   Illegal attempts: {st.illegal}   "
             f"Elapsed: {elapsed_str}",
@@ -474,7 +481,7 @@ async def play_one_game(
     ply = 0
     t_start = time.perf_counter()
 
-    display.new_game(game_index)
+    display.new_game(game_index, t_start)
     log.info("=" * 60)
     log.info(
         "GAME %d  LLM=%s  Stockfish=%s  ELO=%d  model=%s",
