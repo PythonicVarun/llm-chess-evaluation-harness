@@ -1,0 +1,12 @@
+[Event "LLM Chess Evaluation"]
+[Site "Local"]
+[Date "2026.05.29"]
+[Round "1"]
+[White "gpt-4.1-nano"]
+[Black "Stockfish ELO1320"]
+[Result "0-1"]
+
+1. Nf3 e6 2. Ng5 Qxg5 3. h3 Qd8 4. g3 Be7 5. g4 h5 6. h4 d5 7. gxh5 Bd7 8. Rh3
+e5 9. Rh2 Rxh5 10. Rh3 Rh7 11. Rh2 Nh6 12. Rh3 Nc6 13. Rh2 e4 14. Rh3 Bb4 15.
+Rh2 Bd6 16. Rh3 a6 17. Rh2 Ng4 18. Rh3 Nh2 19. Rxh2 Rxh4 20. Rxh4 Qxh4 21. Bh3
+Qxh3 22. c3 Qh1# 0-1

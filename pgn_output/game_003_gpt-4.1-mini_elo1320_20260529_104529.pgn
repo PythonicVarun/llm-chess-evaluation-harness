@@ -1,0 +1,15 @@
+[Event "LLM Chess Evaluation"]
+[Site "Local"]
+[Date "2026.05.29"]
+[Round "3"]
+[White "gpt-4.1-mini"]
+[Black "Stockfish ELO1320"]
+[Result "0-1"]
+
+1. e4 c6 2. d4 d5 3. exd5 Qxd5 4. c4 Qd6 5. d5 e5 6. dxe6 Qxd1+ 7. Kxd1 Bc5 8.
+exf7+ Kf8 9. fxg8=Q+ Rxg8 10. Bh6 gxh6 11. Nc3 Kf7 12. Nd5 cxd5 13. cxd5 Rg7
+14. d6 Nc6 15. d7 Bxd7 16. Ba6 Bg4+ 17. Kd2 bxa6 18. Kd3 Rd8+ 19. Kc4 Bb4 20.
+Kb3 Rd3+ 21. Kc4 Rd8 22. Kb3 a5 23. Kc4 Rd4+ 24. Kb3 Be6+ 25. Ka4 Bc3+ 26. Ka3
+Bd2 27. Rc1 Bxc1 28. Nf3 Bf4 29. Ng5+ hxg5 30. Rg1 a4 31. Rh1 Bd6+ 32. b4 Rd3+
+33. Kxa4 Bf4 34. Kb5 Ne5 35. Ka6 Ra3+ 36. Kb7 Bd5+ 37. Kc8 Rc3+ 38. Kb8 Nc4+
+39. Kxa7 Ra3# 0-1

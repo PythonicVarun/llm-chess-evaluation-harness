@@ -1,0 +1,14 @@
+[Event "LLM Chess Evaluation"]
+[Site "Local"]
+[Date "2026.05.29"]
+[Round "3"]
+[White "gemini-3.1-flash-lite"]
+[Black "Stockfish ELO1320"]
+[Result "0-1"]
+
+1. e4 Nf6 2. Nc3 e6 3. d4 a6 4. Nf3 d5 5. e5 Nfd7 6. Bd3 Be7 7. O-O c5 8. dxc5
+Nxc5 9. Be2 Nc6 10. Nxd5 exd5 11. Bf4 O-O 12. Qxd5 Qxd5 13. Nd4 Qxg2+ 14. Kxg2
+Ne6 15. Nxe6 Bxe6 16. Bh6 f6 17. exf6 Bxf6 18. Bxg7 Bd5+ 19. f3 Bxg7 20. Rf2
+Rfe8 21. Bd3 Re7 22. Bxh7+ Kxh7 23. Rd2 Bd4 24. Rxd4 Nxd4 25. Kf2 Rg8 26. f4
+Rg2+ 27. Kf1 Rxh2 28. Kg1 Rxc2 29. Rd1 Nf3+ 30. Kf1 Bc4+ 31. Rd3 b6 32. f5 b5
+33. f6 a5 34. fxe7 Bxd3# 0-1
