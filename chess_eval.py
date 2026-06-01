@@ -449,7 +449,7 @@ async def _ask_llm_for_move(
 
     request_kwargs: dict[str, Any] = {
         "model": cfg.llm_model,
-        "temperature": 0.2,
+        "temperature": cfg.llm_temperature,
         "messages": [
             {"role": "system", "content": _SYSTEM_PROMPT},
             {"role": "user", "content": user_msg},
@@ -813,6 +813,7 @@ async def run_evaluation(cfg: EvalConfig) -> list[GameResult]:
 
     log.info("LLM endpoint     : %s", cfg.base_url or "OpenAI default")
     log.info("LLM model        : %s", cfg.llm_model)
+    log.info("LLM temperature  : %s", cfg.llm_temperature)
     log.info(
         "LLM reasoning    : %s",
         cfg.llm_reasoning_effort or "default",
@@ -893,6 +894,7 @@ def main() -> None:
     parser.add_argument("--output-dir", type=str, default=None)
     parser.add_argument("--stockfish", type=str, default=None)
     parser.add_argument("--max-tokens", type=int, default=None)
+    parser.add_argument("--temperature", type=float, default=None)
     parser.add_argument(
         "--log-level", choices=["DEBUG", "INFO", "WARNING", "ERROR"], default=None
     )
@@ -919,6 +921,8 @@ def main() -> None:
         cfg.stockfish_path = args.stockfish
     if args.max_tokens:
         cfg.llm_max_tokens = args.max_tokens
+    if args.temperature is not None:
+        cfg.llm_temperature = args.temperature
 
     log_file = _build_log_path(cfg)
     _setup_logging(args.log_level or cfg.log_level, log_file)

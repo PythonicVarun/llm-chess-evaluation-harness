@@ -88,11 +88,12 @@ You can override the default configuration using CLI arguments:
 - `--reasoning-effort <low|medium|high>`: 🧠 Reasoning effort for supported models.
 - `--color <white|black>`: 🎨 The color the LLM will play (default: `white`).
 - `--games <n>`: 🔢 Number of games to play in the match (default: `3`).
-- `--elo <n>`: 📈 Stockfish target ELO (default: `1500`).
+- `--elo <n>`: 📈 Stockfish target ELO (default: `1320`).
 - `--base-url <url>`: 🔗 Custom OpenAI-compatible endpoint URL.
 - `--api-key <key>`: 🗝️ Override the API key explicitly.
 - `--stockfish <path>`: 📍 Path to the Stockfish binary.
 - `--output-dir <path>`: 📁 Directory to save PGN files (default: `pgn_output`).
+- `--temperature <n>`: 🌡️ Model temperature (default: `0.2`).
 - `--log-level <DEBUG|INFO|WARNING|ERROR>`: 📝 Set internal logging verbosity (saved to `logs/<model>_elo<stockfish-elo>.log`).
 
 ### 💡 Example: Testing a local model via vLLM
@@ -107,22 +108,22 @@ python chess_eval.py --model meta-llama/Meta-Llama-3-8B-Instruct --reasoning-eff
 
 Below is a summary of the matches played between various LLM models and Stockfish at different target ELO levels. The table shows the number of wins, losses, draws, total games played, and the resulting win rate for each model at each ELO level.
 
-| Model | Stockfish ELO | Wins | Losses | Draws | Total Games | Win Rate |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **gemini-3.5-flash** | 1500 | 2 | 1 | 0 | 3 | 66.7% |
-| **gpt-5.4-nano** | 1500 | 0 | 2 | 0 | 2 | 0.0% |
-| **gemini-3.5-flash** | 1450 | 1 | 2 | 0 | 3 | 33.3% |
-| **gemini-3.5-flash** | 1400 | 1 | 1 | 1 | 3 | 33.3% |
-| **gemini-3.5-flash** | 1320 | 2 | 1 | 0 | 3 | 66.7% |
-| **gemini-3.1-flash-lite** | 1320 | 0 | 3 | 0 | 3 | 0.0% |
-| **gpt-4.1** | 1320 | 0 | 3 | 0 | 3 | 0.0% |
-| **gpt-4.1-mini** | 1320 | 0 | 2 | 0 | 2 | 0.0% |
-| **gpt-4.1-nano** | 1320 | 0 | 3 | 0 | 3 | 0.0% |
-| **gpt-4o** | 1320 | 0 | 3 | 0 | 3 | 0.0% |
-| **gpt-4o-mini** | 1320 | 0 | 3 | 0 | 3 | 0.0% |
-| **gpt-5.4** | 1320 | 0 | 3 | 0 | 3 | 0.0% |
-| **gpt-5.4-mini** | 1320 | 0 | 3 | 0 | 3 | 0.0% |
-| **gpt-5.4-nano** | 1320 | 0 | 3 | 0 | 3 | 0.0% |
+| Model                     | Stockfish ELO | Wins | Losses | Draws | Total Games | Win Rate |
+| :------------------------ | :-----------: | :--: | :----: | :---: | :---------: | :------: |
+| **gemini-3.5-flash**      |     1500      |  2   |   1    |   0   |      3      |  66.7%   |
+| **gpt-5.4-nano**          |     1500      |  0   |   2    |   0   |      2      |   0.0%   |
+| **gemini-3.5-flash**      |     1450      |  1   |   2    |   0   |      3      |  33.3%   |
+| **gemini-3.5-flash**      |     1400      |  1   |   1    |   1   |      3      |  33.3%   |
+| **gemini-3.5-flash**      |     1320      |  2   |   1    |   0   |      3      |  66.7%   |
+| **gemini-3.1-flash-lite** |     1320      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-4.1**               |     1320      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-4.1-mini**          |     1320      |  0   |   2    |   0   |      2      |   0.0%   |
+| **gpt-4.1-nano**          |     1320      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-4o**                |     1320      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-4o-mini**           |     1320      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-5.4**               |     1320      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-5.4-mini**          |     1320      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-5.4-nano**          |     1320      |  0   |   3    |   0   |      3      |   0.0%   |
 
 ## 🪙 Token & Cost Summarization
 
