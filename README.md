@@ -127,6 +127,7 @@ Below is a summary of the matches played between various LLM models and Stockfis
 | **gpt-5.4**               |      1320     |  0   |   3    |   0   |      3      |   0.0%   |
 | **gpt-5.4-mini**          |      1320     |  0   |   3    |   0   |      3      |   0.0%   |
 | **gpt-5.4-nano**          |      1320     |  0   |   6    |   0   |      6      |   0.0%   |
+| **gpt-5.5**               |      1320     |  3   |   0    |   0   |      3      |  100.0%  |
 
 ## 🪙 Token & Cost Summarization
 
