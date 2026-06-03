@@ -110,6 +110,7 @@ Below is a summary of the matches played between various LLM models and Stockfis
 
 | Model                     | Stockfish ELO | Wins | Losses | Draws | Total Games | Win Rate |
 | :------------------------ | :-----------: | :--: | :----: | :---: | :---------: | :------: |
+| **gemini-3.5-flash**      |      2000     |  0   |   3    |   0   |      3      |   0.0%   |
 | **gemini-3.5-flash**      |      1800     |  1   |   1    |   1   |      3      |  33.3%   |
 | **gemini-3.5-flash**      |      1600     |  1   |   2    |   0   |      3      |  33.3%   |
 | **gemini-3.5-flash**      |      1500     |  2   |   1    |   0   |      3      |  66.7%   |
