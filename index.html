@@ -1,0 +1,1517 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LLM Chess Evaluation — Leaderboard</title>
+        <meta
+            name="description"
+            content="Interactive leaderboard for LLM vs Stockfish chess evaluation matches with full game replay."
+        />
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Chessboard.js CSS -->
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css"
+        />
+
+        <style>
+            /* ===== CSS Variables & Reset ===== */
+            :root {
+                --bg-primary: #0a0a0f;
+                --bg-secondary: #12121a;
+                --bg-card: #1a1a28;
+                --bg-card-hover: #222236;
+                --bg-modal: #15152280;
+                --surface: #252540;
+                --border: #2a2a45;
+                --border-glow: #6366f155;
+                --text-primary: #e8e8f0;
+                --text-secondary: #8888a8;
+                --text-muted: #555570;
+                --accent: #818cf8;
+                --accent-glow: #818cf840;
+                --green: #34d399;
+                --green-bg: #34d39915;
+                --red: #f87171;
+                --red-bg: #f8717115;
+                --yellow: #fbbf24;
+                --yellow-bg: #fbbf2415;
+                --blue: #60a5fa;
+                --purple: #a78bfa;
+                --gradient-1: linear-gradient(
+                    135deg,
+                    #6366f1 0%,
+                    #818cf8 50%,
+                    #a78bfa 100%
+                );
+                --gradient-2: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+                --radius-sm: 8px;
+                --radius-md: 12px;
+                --radius-lg: 16px;
+                --radius-xl: 24px;
+                --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+                --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.4);
+                --shadow-lg: 0 16px 64px rgba(0, 0, 0, 0.5);
+                --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.15);
+            }
+
+            *,
+            *::before,
+            *::after {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                font-family:
+                    "Inter",
+                    system-ui,
+                    -apple-system,
+                    sans-serif;
+                background: var(--bg-primary);
+                color: var(--text-primary);
+                min-height: 100vh;
+                overflow-x: hidden;
+            }
+
+            /* ===== Animated background ===== */
+            .bg-grid {
+                position: fixed;
+                inset: 0;
+                z-index: 0;
+                pointer-events: none;
+                background-image:
+                    radial-gradient(
+                        circle at 20% 30%,
+                        rgba(99, 102, 241, 0.06) 0%,
+                        transparent 50%
+                    ),
+                    radial-gradient(
+                        circle at 80% 70%,
+                        rgba(167, 139, 250, 0.05) 0%,
+                        transparent 50%
+                    ),
+                    linear-gradient(
+                        rgba(255, 255, 255, 0.015) 1px,
+                        transparent 1px
+                    ),
+                    linear-gradient(
+                        90deg,
+                        rgba(255, 255, 255, 0.015) 1px,
+                        transparent 1px
+                    );
+                background-size:
+                    100% 100%,
+                    100% 100%,
+                    60px 60px,
+                    60px 60px;
+                animation: bgPulse 8s ease-in-out infinite alternate;
+            }
+            @keyframes bgPulse {
+                0% {
+                    opacity: 0.5;
+                }
+                100% {
+                    opacity: 1;
+                }
+            }
+
+            /* ===== Layout ===== */
+            .container {
+                position: relative;
+                z-index: 1;
+                max-width: 1400px;
+                margin: 0 auto;
+                padding: 40px 32px 80px;
+            }
+
+            /* ===== Header ===== */
+            .header {
+                text-align: center;
+                margin-bottom: 48px;
+            }
+            .header-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: 999px;
+                padding: 6px 16px;
+                margin-bottom: 16px;
+                font-size: 13px;
+                font-weight: 500;
+                color: var(--accent);
+                letter-spacing: 0.5px;
+                text-transform: uppercase;
+            }
+            .header-badge .dot {
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: var(--green);
+                animation: pulse 2s ease-in-out infinite;
+            }
+            @keyframes pulse {
+                0%,
+                100% {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                50% {
+                    opacity: 0.5;
+                    transform: scale(0.8);
+                }
+            }
+            .header h1 {
+                font-size: clamp(32px, 5vw, 52px);
+                font-weight: 800;
+                background: var(--gradient-1);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                line-height: 1.15;
+                margin-bottom: 12px;
+                letter-spacing: -1px;
+            }
+            .header p {
+                font-size: 17px;
+                color: var(--text-secondary);
+                max-width: 600px;
+                margin: 0 auto;
+                line-height: 1.6;
+            }
+
+            /* ===== Stats Cards ===== */
+            .stats-row {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 16px;
+                margin-bottom: 40px;
+            }
+            .stat-card {
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-md);
+                padding: 20px 24px;
+                transition: all 0.3s ease;
+            }
+            .stat-card:hover {
+                border-color: var(--accent);
+                box-shadow: var(--shadow-glow);
+                transform: translateY(-2px);
+            }
+            .stat-card .label {
+                font-size: 12px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                color: var(--text-muted);
+                margin-bottom: 6px;
+                font-weight: 600;
+            }
+            .stat-card .value {
+                font-size: 28px;
+                font-weight: 800;
+                font-family: "JetBrains Mono", monospace;
+            }
+            .stat-card .value.green {
+                color: var(--green);
+            }
+            .stat-card .value.red {
+                color: var(--red);
+            }
+            .stat-card .value.yellow {
+                color: var(--yellow);
+            }
+            .stat-card .value.accent {
+                color: var(--accent);
+            }
+            .stat-card .value.blue {
+                color: var(--blue);
+            }
+
+            /* ===== Leaderboard Table ===== */
+            .table-wrapper {
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-lg);
+                overflow: hidden;
+                box-shadow: var(--shadow-md);
+            }
+            .table-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 20px 28px;
+                border-bottom: 1px solid var(--border);
+            }
+            .table-header h2 {
+                font-size: 20px;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .table-header h2 .icon {
+                font-size: 24px;
+            }
+            .table-hint {
+                font-size: 13px;
+                color: var(--text-muted);
+                font-style: italic;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            thead th {
+                padding: 14px 20px;
+                font-size: 11px;
+                text-transform: uppercase;
+                letter-spacing: 1.2px;
+                color: var(--text-muted);
+                font-weight: 700;
+                text-align: left;
+                background: var(--bg-secondary);
+                border-bottom: 1px solid var(--border);
+                position: sticky;
+                top: 0;
+                z-index: 2;
+                cursor: pointer;
+                user-select: none;
+                transition: color 0.2s;
+            }
+            thead th:hover {
+                color: var(--accent);
+            }
+            thead th .sort-arrow {
+                margin-left: 4px;
+                font-size: 10px;
+                opacity: 0.5;
+            }
+            thead th.sorted .sort-arrow {
+                opacity: 1;
+                color: var(--accent);
+            }
+
+            tbody tr {
+                border-bottom: 1px solid var(--border);
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            tbody tr:last-child {
+                border-bottom: none;
+            }
+            tbody tr:hover {
+                background: var(--bg-card-hover);
+            }
+            tbody tr:hover td:first-child {
+                color: var(--accent);
+            }
+            tbody td {
+                padding: 16px 20px;
+                font-size: 14px;
+                font-weight: 400;
+                vertical-align: middle;
+            }
+
+            .model-name {
+                font-weight: 600;
+                font-size: 15px;
+                color: var(--text-primary);
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .model-name .provider-badge {
+                font-size: 10px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+                padding: 3px 8px;
+                border-radius: 999px;
+                border: 1px solid;
+            }
+            .provider-openai {
+                color: var(--green);
+                border-color: var(--green);
+                background: var(--green-bg);
+            }
+            .provider-google {
+                color: var(--blue);
+                border-color: var(--blue);
+                background: rgba(96, 165, 250, 0.1);
+            }
+            .provider-anthropic {
+                color: var(--purple);
+                border-color: var(--purple);
+                background: rgba(167, 139, 250, 0.1);
+            }
+            .provider-other {
+                color: var(--text-muted);
+                border-color: var(--text-muted);
+                background: rgba(85, 85, 112, 0.1);
+            }
+
+            .elo-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                padding: 4px 12px;
+                border-radius: 999px;
+                font-size: 13px;
+                font-weight: 600;
+                font-family: "JetBrains Mono", monospace;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                color: var(--text-secondary);
+            }
+
+            .result-pill {
+                display: inline-block;
+                padding: 4px 14px;
+                border-radius: 999px;
+                font-size: 13px;
+                font-weight: 700;
+                font-family: "JetBrains Mono", monospace;
+                min-width: 32px;
+                text-align: center;
+            }
+            .result-pill.win {
+                background: var(--green-bg);
+                color: var(--green);
+                border: 1px solid rgba(52, 211, 153, 0.3);
+            }
+            .result-pill.loss {
+                background: var(--red-bg);
+                color: var(--red);
+                border: 1px solid rgba(248, 113, 113, 0.3);
+            }
+            .result-pill.draw {
+                background: var(--yellow-bg);
+                color: var(--yellow);
+                border: 1px solid rgba(251, 191, 36, 0.3);
+            }
+
+            .winrate-bar {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .winrate-bar .bar-track {
+                flex: 1;
+                height: 8px;
+                border-radius: 4px;
+                background: var(--surface);
+                overflow: hidden;
+                min-width: 80px;
+            }
+            .winrate-bar .bar-fill {
+                height: 100%;
+                border-radius: 4px;
+                transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+            }
+            .winrate-bar .bar-fill.high {
+                background: var(--gradient-1);
+            }
+            .winrate-bar .bar-fill.med {
+                background: linear-gradient(90deg, var(--yellow), #f59e0b);
+            }
+            .winrate-bar .bar-fill.low {
+                background: linear-gradient(90deg, var(--red), #ef4444);
+            }
+            .winrate-bar .pct {
+                font-size: 14px;
+                font-weight: 700;
+                font-family: "JetBrains Mono", monospace;
+                min-width: 48px;
+                text-align: right;
+            }
+
+            /* ===== Games Sub-table ===== */
+            .games-row {
+                display: none;
+            }
+            .games-row.open {
+                display: table-row;
+            }
+            .games-row td {
+                padding: 0;
+                background: var(--bg-secondary);
+            }
+            .games-inner {
+                padding: 16px 28px 20px;
+            }
+            .games-inner h4 {
+                font-size: 14px;
+                font-weight: 600;
+                margin-bottom: 12px;
+                color: var(--accent);
+            }
+            .games-list {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+                gap: 10px;
+            }
+            .game-chip {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 10px 16px;
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                cursor: pointer;
+                transition: all 0.2s;
+                font-size: 13px;
+            }
+            .game-chip:hover {
+                border-color: var(--accent);
+                background: var(--bg-card-hover);
+                transform: translateX(4px);
+            }
+            .game-chip .game-info {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+            .game-chip .game-label {
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+            .game-chip .game-date {
+                font-size: 11px;
+                color: var(--text-muted);
+            }
+            .game-chip .game-result {
+                font-weight: 700;
+                font-family: "JetBrains Mono", monospace;
+                font-size: 12px;
+            }
+            .game-chip .game-result.w {
+                color: var(--green);
+            }
+            .game-chip .game-result.l {
+                color: var(--red);
+            }
+            .game-chip .game-result.d {
+                color: var(--yellow);
+            }
+
+            /* ===== Modal ===== */
+            .modal-overlay {
+                position: fixed;
+                inset: 0;
+                z-index: 1000;
+                background: var(--bg-modal);
+                backdrop-filter: blur(12px);
+                display: none;
+                align-items: center;
+                justify-content: center;
+                animation: fadeIn 0.2s ease;
+            }
+            .modal-overlay.active {
+                display: flex;
+            }
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                }
+                to {
+                    opacity: 1;
+                }
+            }
+
+            .modal {
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-xl);
+                box-shadow: var(--shadow-lg), var(--shadow-glow);
+                width: 95vw;
+                max-width: 960px;
+                max-height: 92vh;
+                overflow-y: auto;
+                animation: slideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+            }
+            @keyframes slideUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px) scale(0.98);
+                }
+                to {
+                    opacity: 1;
+                    transform: none;
+                }
+            }
+
+            .modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 24px 28px 16px;
+                border-bottom: 1px solid var(--border);
+            }
+            .modal-header h3 {
+                font-size: 20px;
+                font-weight: 700;
+            }
+            .modal-close {
+                width: 36px;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                background: var(--surface);
+                color: var(--text-secondary);
+                cursor: pointer;
+                font-size: 18px;
+                transition: all 0.2s;
+            }
+            .modal-close:hover {
+                border-color: var(--red);
+                color: var(--red);
+            }
+
+            .modal-body {
+                padding: 24px 28px 28px;
+            }
+
+            .replay-layout {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 24px;
+            }
+            @media (max-width: 768px) {
+                .replay-layout {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            .board-container {
+                width: 100%;
+            }
+            #replay-board {
+                width: 100% !important;
+            }
+            #replay-board .board-b72b1 {
+                border-radius: var(--radius-md);
+                border: 2px solid var(--border) !important;
+                overflow: hidden;
+            }
+
+            .replay-controls {
+                display: flex;
+                gap: 8px;
+                margin-top: 16px;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .replay-controls button {
+                padding: 8px 16px;
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                background: var(--surface);
+                color: var(--text-primary);
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 600;
+                transition: all 0.2s;
+                font-family: "Inter", sans-serif;
+            }
+            .replay-controls button:hover {
+                border-color: var(--accent);
+                background: var(--bg-card-hover);
+                color: var(--accent);
+            }
+            .replay-controls button:active {
+                transform: scale(0.96);
+            }
+            .replay-controls button.primary {
+                background: var(--gradient-1);
+                border: none;
+                color: #fff;
+            }
+            .replay-controls button.primary:hover {
+                opacity: 0.9;
+                color: #fff;
+            }
+
+            .move-display {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+            .game-meta {
+                display: grid;
+                grid-template-columns: auto 1fr;
+                gap: 6px 12px;
+                font-size: 13px;
+                background: var(--bg-secondary);
+                padding: 14px 16px;
+                border-radius: var(--radius-sm);
+                border: 1px solid var(--border);
+            }
+            .game-meta .key {
+                color: var(--text-muted);
+                font-weight: 600;
+                text-transform: uppercase;
+                font-size: 11px;
+                letter-spacing: 0.5px;
+            }
+            .game-meta .val {
+                color: var(--text-primary);
+                font-weight: 500;
+            }
+
+            .move-list-container {
+                flex: 1;
+                overflow-y: auto;
+                max-height: 320px;
+                background: var(--bg-secondary);
+                border-radius: var(--radius-sm);
+                border: 1px solid var(--border);
+                padding: 12px;
+            }
+            .move-list {
+                display: grid;
+                grid-template-columns: 36px 1fr 1fr;
+                gap: 2px 4px;
+                font-family: "JetBrains Mono", monospace;
+                font-size: 13px;
+            }
+            .move-list .move-num {
+                color: var(--text-muted);
+                text-align: right;
+                padding-right: 6px;
+                font-weight: 600;
+            }
+            .move-list .move {
+                padding: 3px 8px;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: all 0.15s;
+            }
+            .move-list .move:hover {
+                background: var(--surface);
+            }
+            .move-list .move.active {
+                background: var(--accent);
+                color: #fff;
+                font-weight: 700;
+            }
+            .move-list .move.white-move {
+                color: var(--text-primary);
+            }
+            .move-list .move.black-move {
+                color: var(--text-secondary);
+            }
+
+            .current-status {
+                padding: 10px 14px;
+                background: var(--bg-secondary);
+                border-radius: var(--radius-sm);
+                border: 1px solid var(--border);
+                font-size: 13px;
+                color: var(--text-secondary);
+                text-align: center;
+                font-weight: 500;
+            }
+
+            /* ===== Footer ===== */
+            .footer {
+                text-align: center;
+                padding: 40px 0 0;
+                font-size: 13px;
+                color: var(--text-muted);
+            }
+            .footer a {
+                color: var(--accent);
+                text-decoration: none;
+            }
+            .footer a:hover {
+                text-decoration: underline;
+            }
+
+            /* ===== Loading ===== */
+            .loading {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 80px 0;
+                gap: 16px;
+            }
+            .spinner {
+                width: 40px;
+                height: 40px;
+                border: 3px solid var(--border);
+                border-top-color: var(--accent);
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+            }
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            /* ===== Scrollbar ===== */
+            ::-webkit-scrollbar {
+                width: 8px;
+            }
+            ::-webkit-scrollbar-track {
+                background: var(--bg-secondary);
+            }
+            ::-webkit-scrollbar-thumb {
+                background: var(--surface);
+                border-radius: 4px;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+                background: var(--text-muted);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="bg-grid"></div>
+
+        <div class="container">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-badge">
+                    <span class="dot"></span> Live Evaluation Results
+                </div>
+                <h1>♟ LLM Chess Leaderboard</h1>
+                <p>
+                    How well do large language models play chess against
+                    Stockfish at various ELO ratings?
+                </p>
+            </header>
+
+            <!-- Stats -->
+            <div class="stats-row" id="stats-row">
+                <div class="stat-card">
+                    <div class="label">Total Games</div>
+                    <div class="value accent" id="stat-total">—</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Models Tested</div>
+                    <div class="value blue" id="stat-models">—</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">LLM Wins</div>
+                    <div class="value green" id="stat-wins">—</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Stockfish Wins</div>
+                    <div class="value red" id="stat-losses">—</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Draws</div>
+                    <div class="value yellow" id="stat-draws">—</div>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-wrapper">
+                <div class="table-header">
+                    <h2><span class="icon">🏆</span> Model Performance</h2>
+                    <span class="table-hint"
+                        >Click a row to see individual games & replay</span
+                    >
+                </div>
+                <div id="table-container">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <span style="color: var(--text-muted)"
+                            >Loading PGN data…</span
+                        >
+                    </div>
+                </div>
+            </div>
+
+            <footer class="footer">
+                Built with ♟ by
+                <a
+                    href="https://github.com/PythonicVarun/llm-chess-evaluation-harness"
+                    >LLM Chess Evaluation Harness</a
+                >
+                — All games played locally against Stockfish
+            </footer>
+        </div>
+
+        <!-- Replay Modal -->
+        <div class="modal-overlay" id="modal-overlay">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 id="modal-title">Game Replay</h3>
+                    <button class="modal-close" id="modal-close">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="replay-layout">
+                        <div class="board-container">
+                            <div id="replay-board" style="width: 100%"></div>
+                            <div class="replay-controls">
+                                <button
+                                    onclick="replayGoStart()"
+                                    title="Go to start"
+                                >
+                                    ⏮
+                                </button>
+                                <button
+                                    onclick="replayPrev()"
+                                    title="Previous move"
+                                >
+                                    ◀
+                                </button>
+                                <button
+                                    class="primary"
+                                    id="btn-autoplay"
+                                    onclick="replayToggleAuto()"
+                                    title="Auto-play"
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    onclick="replayNext()"
+                                    title="Next move"
+                                >
+                                    ▶
+                                </button>
+                                <button
+                                    onclick="replayGoEnd()"
+                                    title="Go to end"
+                                >
+                                    ⏭
+                                </button>
+                                <button
+                                    onclick="replayFlip()"
+                                    title="Flip board"
+                                >
+                                    🔄
+                                </button>
+                            </div>
+                        </div>
+                        <div class="move-display">
+                            <div class="game-meta" id="game-meta"></div>
+                            <div class="move-list-container">
+                                <div class="move-list" id="move-list"></div>
+                            </div>
+                            <div class="current-status" id="current-status">
+                                Click ▶ to auto-play or use arrow buttons
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dependencies -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+
+        <script>
+            // ==========================================
+            // PGN File List — generated from pgn_output/
+            // ==========================================
+            const PGN_FILES = [
+                "pgn_output/game_001_gemini-3.1-flash-lite_elo1320_20260529_112403.pgn",
+                "pgn_output/game_001_gemini-3.5-flash_elo1320_20260529_112740.pgn",
+                "pgn_output/game_001_gemini-3.5-flash_elo1400_20260529_114913.pgn",
+                "pgn_output/game_001_gemini-3.5-flash_elo1450_20260529_115923.pgn",
+                "pgn_output/game_001_gemini-3.5-flash_elo1500_20260529_122656.pgn",
+                "pgn_output/game_001_google_gemini-3.5-flash_elo1600_20260603_101147.pgn",
+                "pgn_output/game_001_google_gemini-3.5-flash_elo1800_20260603_104054.pgn",
+                "pgn_output/game_001_gpt-4.1-mini_elo1320_20260529_104415.pgn",
+                "pgn_output/game_001_gpt-4.1-nano_elo1320_20260529_083001.pgn",
+                "pgn_output/game_001_gpt-4.1_elo1320_20260529_105717.pgn",
+                "pgn_output/game_001_gpt-4o-mini_elo1320_20260529_104129.pgn",
+                "pgn_output/game_001_gpt-4o_elo1320_20260529_105409.pgn",
+                "pgn_output/game_001_gpt-5.4-mini_elo1320_20260529_105202.pgn",
+                "pgn_output/game_001_gpt-5.4-nano_elo1320_20260529_102350.pgn",
+                "pgn_output/game_001_gpt-5.4-nano_elo1320_20260531_213315.pgn",
+                "pgn_output/game_001_gpt-5.4-nano_elo1320_20260531_213358.pgn",
+                "pgn_output/game_001_gpt-5.4-nano_elo1320_20260531_213730.pgn",
+                "pgn_output/game_001_gpt-5.4-nano_elo1500_20260529_195717.pgn",
+                "pgn_output/game_001_gpt-5.4-nano_elo1500_20260529_202151.pgn",
+                "pgn_output/game_001_gpt-5.4_elo1320_20260529_110155.pgn",
+                "pgn_output/game_002_gemini-3.1-flash-lite_elo1320_20260529_112438.pgn",
+                "pgn_output/game_002_gemini-3.5-flash_elo1320_20260529_113525.pgn",
+                "pgn_output/game_002_gemini-3.5-flash_elo1400_20260529_115232.pgn",
+                "pgn_output/game_002_gemini-3.5-flash_elo1450_20260529_120836.pgn",
+                "pgn_output/game_002_gemini-3.5-flash_elo1500_20260529_122916.pgn",
+                "pgn_output/game_002_google_gemini-3.5-flash_elo1600_20260603_102706.pgn",
+                "pgn_output/game_002_google_gemini-3.5-flash_elo1800_20260603_105040.pgn",
+                "pgn_output/game_002_gpt-4.1-mini_elo1320_20260529_104429.pgn",
+                "pgn_output/game_002_gpt-4.1-nano_elo1320_20260529_083024.pgn",
+                "pgn_output/game_002_gpt-4.1_elo1320_20260529_105740.pgn",
+                "pgn_output/game_002_gpt-4o-mini_elo1320_20260529_104149.pgn",
+                "pgn_output/game_002_gpt-4o_elo1320_20260529_105444.pgn",
+                "pgn_output/game_002_gpt-5.4-mini_elo1320_20260529_105252.pgn",
+                "pgn_output/game_002_gpt-5.4-nano_elo1320_20260529_102413.pgn",
+                "pgn_output/game_002_gpt-5.4_elo1320_20260529_110245.pgn",
+                "pgn_output/game_003_gemini-3.1-flash-lite_elo1320_20260529_112522.pgn",
+                "pgn_output/game_003_gemini-3.5-flash_elo1320_20260529_113849.pgn",
+                "pgn_output/game_003_gemini-3.5-flash_elo1400_20260529_115323.pgn",
+                "pgn_output/game_003_gemini-3.5-flash_elo1450_20260529_121620.pgn",
+                "pgn_output/game_003_gemini-3.5-flash_elo1500_20260529_123215.pgn",
+                "pgn_output/game_003_google_gemini-3.5-flash_elo1600_20260603_103611.pgn",
+                "pgn_output/game_003_google_gemini-3.5-flash_elo1800_20260603_105525.pgn",
+                "pgn_output/game_003_gpt-4.1-mini_elo1320_20260529_104529.pgn",
+                "pgn_output/game_003_gpt-4.1-nano_elo1320_20260529_083047.pgn",
+                "pgn_output/game_003_gpt-4.1_elo1320_20260529_105814.pgn",
+                "pgn_output/game_003_gpt-4o-mini_elo1320_20260529_104225.pgn",
+                "pgn_output/game_003_gpt-4o_elo1320_20260529_105525.pgn",
+                "pgn_output/game_003_gpt-5.4-mini_elo1320_20260529_105312.pgn",
+                "pgn_output/game_003_gpt-5.4-nano_elo1320_20260529_102434.pgn",
+                "pgn_output/game_003_gpt-5.4_elo1320_20260529_110331.pgn",
+            ];
+
+            // ==========================================
+            // PGN Parser
+            // ==========================================
+            function parsePGN(text) {
+                const headers = {};
+                const lines = text.split(/\r?\n/);
+                let moveText = "";
+                let inMoves = false;
+
+                for (const line of lines) {
+                    const headerMatch = line.match(/^\[(\w+)\s+"(.*)"\]$/);
+                    if (headerMatch) {
+                        headers[headerMatch[1]] = headerMatch[2];
+                    } else if (line.trim() !== "") {
+                        inMoves = true;
+                        moveText += " " + line.trim();
+                    }
+                }
+
+                // Normalize the model name: LLM is always the non-Stockfish player
+                let llmModel = "";
+                let llmColor = "";
+                const white = headers["White"] || "";
+                const black = headers["Black"] || "";
+                if (white.toLowerCase().includes("stockfish")) {
+                    llmModel = black;
+                    llmColor = "black";
+                } else {
+                    llmModel = white;
+                    llmColor = "white";
+                }
+
+                // Extract ELO from the Stockfish player name
+                const sfPlayer = llmColor === "white" ? black : white;
+                const eloMatch = sfPlayer.match(/ELO(\d+)/i);
+                const elo = eloMatch ? parseInt(eloMatch[1]) : 0;
+
+                // Determine result relative to LLM
+                const result = headers["Result"] || "*";
+                let llmResult = "unknown";
+                if (result === "1-0")
+                    llmResult = llmColor === "white" ? "win" : "loss";
+                else if (result === "0-1")
+                    llmResult = llmColor === "black" ? "win" : "loss";
+                else if (result === "1/2-1/2") llmResult = "draw";
+
+                // Normalize model name: strip "google/" or other provider prefixes for grouping
+                const displayModel = llmModel;
+                const normalizedModel = llmModel.replace(
+                    /^(google|openai|anthropic)\//i,
+                    "",
+                );
+
+                return {
+                    headers,
+                    moveText: moveText.trim(),
+                    llmModel: normalizedModel,
+                    displayModel,
+                    llmColor,
+                    elo,
+                    result,
+                    llmResult,
+                    date: headers["Date"] || "",
+                    round: headers["Round"] || "",
+                };
+            }
+
+            function getProvider(modelName) {
+                const n = modelName.toLowerCase();
+                if (
+                    n.startsWith("gpt-") ||
+                    n.startsWith("o1") ||
+                    n.startsWith("o3") ||
+                    n.startsWith("o4")
+                )
+                    return "openai";
+                if (n.startsWith("gemini")) return "google";
+                if (n.startsWith("claude")) return "anthropic";
+                return "other";
+            }
+
+            // ==========================================
+            // Data Processing
+            // ==========================================
+            let allGames = [];
+
+            async function loadAllPGNs() {
+                const fetches = PGN_FILES.map((f) =>
+                    fetch(f)
+                        .then((r) => (r.ok ? r.text() : ""))
+                        .catch(() => ""),
+                );
+                const texts = await Promise.all(fetches);
+                allGames = texts
+                    .filter((t) => t.trim())
+                    .map((t, i) => ({
+                        ...parsePGN(t),
+                        rawPGN: t,
+                        fileName: PGN_FILES[i].split("/").pop(),
+                    }));
+            }
+
+            function buildLeaderboard() {
+                // Group by (model, elo)
+                const groups = {};
+                for (const g of allGames) {
+                    const key = `${g.llmModel}::${g.elo}`;
+                    if (!groups[key]) {
+                        groups[key] = {
+                            model: g.llmModel,
+                            displayModel: g.displayModel,
+                            elo: g.elo,
+                            games: [],
+                            wins: 0,
+                            losses: 0,
+                            draws: 0,
+                        };
+                    }
+                    groups[key].games.push(g);
+                    if (g.llmResult === "win") groups[key].wins++;
+                    else if (g.llmResult === "loss") groups[key].losses++;
+                    else if (g.llmResult === "draw") groups[key].draws++;
+                }
+
+                // Sort by ELO descending first, then by win rate descending as tiebreaker
+                const rows = Object.values(groups)
+                    .filter((r) => r.wins > 0)
+                    .sort((a, b) => {
+                        if (b.elo !== a.elo) return b.elo - a.elo;
+                        const wrA = a.games.length
+                            ? a.wins / a.games.length
+                            : 0;
+                        const wrB = b.games.length
+                            ? b.wins / b.games.length
+                            : 0;
+                        return wrB - wrA;
+                    });
+
+                return rows;
+            }
+
+            // ==========================================
+            // Rendering
+            // ==========================================
+            function renderStats(rows) {
+                const activeGames = rows.flatMap(r => r.games);
+                const total = activeGames.length;
+                const models = new Set(activeGames.map((g) => g.llmModel)).size;
+                const wins = activeGames.filter(
+                    (g) => g.llmResult === "win",
+                ).length;
+                const losses = activeGames.filter(
+                    (g) => g.llmResult === "loss",
+                ).length;
+                const draws = activeGames.filter(
+                    (g) => g.llmResult === "draw",
+                ).length;
+
+                document.getElementById("stat-total").textContent = total;
+                document.getElementById("stat-models").textContent = models;
+                document.getElementById("stat-wins").textContent = wins;
+                document.getElementById("stat-losses").textContent = losses;
+                document.getElementById("stat-draws").textContent = draws;
+            }
+
+            function renderTable(rows) {
+                const container = document.getElementById("table-container");
+
+                let html = `<table>
+        <thead><tr>
+          <th>Rank</th>
+          <th>Model</th>
+          <th>vs Stockfish ELO</th>
+          <th>Games</th>
+          <th>Wins</th>
+          <th>Losses</th>
+          <th>Draws</th>
+          <th>Win Rate</th>
+        </tr></thead><tbody>`;
+
+                rows.forEach((row, i) => {
+                    const total = row.games.length;
+                    const wr = total ? (row.wins / total) * 100 : 0;
+                    const wrClass =
+                        wr >= 60 ? "high" : wr >= 30 ? "med" : "low";
+                    const provider = getProvider(row.model);
+                    const rowId = `row-${i}`;
+                    const gamesId = `games-${i}`;
+
+                    html += `<tr onclick="toggleGames('${gamesId}', this)" data-row-id="${rowId}">
+          <td style="font-weight:700; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">${i + 1}</td>
+          <td>
+            <div class="model-name">
+              <span class="provider-badge provider-${provider}">${provider}</span>
+              ${escHtml(row.model)}
+            </div>
+          </td>
+          <td><span class="elo-badge">⚡ ${row.elo}</span></td>
+          <td style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">${total}</td>
+          <td><span class="result-pill win">${row.wins}</span></td>
+          <td><span class="result-pill loss">${row.losses}</span></td>
+          <td><span class="result-pill draw">${row.draws}</span></td>
+          <td>
+            <div class="winrate-bar">
+              <div class="bar-track"><div class="bar-fill ${wrClass}" style="width: ${wr}%"></div></div>
+              <span class="pct" style="color: var(--${wr >= 60 ? "green" : wr >= 30 ? "yellow" : "red"})">${wr.toFixed(0)}%</span>
+            </div>
+          </td>
+        </tr>`;
+
+                    // Expandable games sub-row
+                    html += `<tr class="games-row" id="${gamesId}"><td colspan="8">
+          <div class="games-inner">
+            <h4>📋 Individual Games</h4>
+            <div class="games-list">`;
+
+                    row.games.forEach((g, gi) => {
+                        const rc =
+                            g.llmResult === "win"
+                                ? "w"
+                                : g.llmResult === "loss"
+                                  ? "l"
+                                  : "d";
+                        const rl =
+                            g.llmResult === "win"
+                                ? "✔ LLM Won"
+                                : g.llmResult === "loss"
+                                  ? "✘ SF Won"
+                                  : "½ Draw";
+                        const dateStr = g.date.replace(/\./g, "-");
+                        html += `<div class="game-chip" onclick="event.stopPropagation(); openReplay(${allGames.indexOf(g)})">
+            <div class="game-info">
+              <span class="game-label">Game ${g.round} — ${g.llmColor === "white" ? "♔ White" : "♚ Black"}</span>
+              <span class="game-date">${dateStr} • ${g.fileName}</span>
+            </div>
+            <span class="game-result ${rc}">${rl} (${g.result})</span>
+          </div>`;
+                    });
+
+                    html += `</div></div></td></tr>`;
+                });
+
+                html += "</tbody></table>";
+                container.innerHTML = html;
+
+                // Animate win-rate bars
+                requestAnimationFrame(() => {
+                    document.querySelectorAll(".bar-fill").forEach((el) => {
+                        const w = el.style.width;
+                        el.style.width = "0%";
+                        requestAnimationFrame(() => {
+                            el.style.width = w;
+                        });
+                    });
+                });
+            }
+
+            function toggleGames(id, tr) {
+                const el = document.getElementById(id);
+                el.classList.toggle("open");
+                tr.style.background = el.classList.contains("open")
+                    ? "var(--bg-card-hover)"
+                    : "";
+            }
+
+            function escHtml(s) {
+                const d = document.createElement("div");
+                d.textContent = s;
+                return d.innerHTML;
+            }
+
+            // ==========================================
+            // Chess Replay
+            // ==========================================
+            let replayBoard = null;
+            let replayGame = null;
+            let replayMoves = [];
+            let replayIndex = -1; // -1 = starting position
+            let replayPositions = [];
+            let autoplayInterval = null;
+            let boardFlipped = false;
+
+            function openReplay(gameIdx) {
+                const g = allGames[gameIdx];
+                if (!g) return;
+
+                // Setup chess.js game
+                replayGame = new Chess();
+                replayMoves = [];
+                replayPositions = [replayGame.fen()];
+
+                // Parse moves from moveText
+                const moveStr = g.moveText
+                    .replace(/\{[^}]*\}/g, "") // remove comments
+                    .replace(/\d+\.\.\./g, "") // remove "1..."
+                    .replace(/1-0|0-1|1\/2-1\/2|\*/g, "") // remove result
+                    .trim();
+
+                const tokens = moveStr
+                    .split(/\s+/)
+                    .filter((t) => !t.match(/^\d+\.$/));
+
+                for (const tok of tokens) {
+                    const clean = tok.replace(/^\d+\./, "");
+                    if (!clean) continue;
+                    const result = replayGame.move(clean);
+                    if (result) {
+                        replayMoves.push(result);
+                        replayPositions.push(replayGame.fen());
+                    }
+                }
+
+                replayIndex = -1;
+                stopAutoplay();
+
+                // Render modal meta
+                document.getElementById("modal-title").textContent =
+                    `${g.displayModel} vs Stockfish ${g.elo}`;
+                document.getElementById("game-meta").innerHTML = `
+        <span class="key">Event</span><span class="val">${escHtml(g.headers.Event || "")}</span>
+        <span class="key">Date</span><span class="val">${escHtml(g.date)}</span>
+        <span class="key">White</span><span class="val">${escHtml(g.headers.White || "")}</span>
+        <span class="key">Black</span><span class="val">${escHtml(g.headers.Black || "")}</span>
+        <span class="key">Result</span><span class="val">${escHtml(g.result)}</span>
+        <span class="key">Round</span><span class="val">${escHtml(g.round)}</span>
+      `;
+
+                // Render move list
+                renderMoveList();
+                updateStatus();
+
+                // Show modal
+                document
+                    .getElementById("modal-overlay")
+                    .classList.add("active");
+
+                // Init or update board
+                boardFlipped = g.llmColor === "black";
+                setTimeout(() => {
+                    if (replayBoard) {
+                        replayBoard.destroy();
+                    }
+                    replayBoard = Chessboard("replay-board", {
+                        position: "start",
+                        pieceTheme:
+                            "https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png",
+                        orientation: boardFlipped ? "black" : "white",
+                    });
+                    $(window).trigger("resize");
+                }, 50);
+            }
+
+            function renderMoveList() {
+                const container = document.getElementById("move-list");
+                let html = "";
+                for (let i = 0; i < replayMoves.length; i += 2) {
+                    const moveNum = Math.floor(i / 2) + 1;
+                    const wMove = replayMoves[i];
+                    const bMove =
+                        i + 1 < replayMoves.length ? replayMoves[i + 1] : null;
+                    const wActive = replayIndex === i ? "active" : "";
+                    const bActive = replayIndex === i + 1 ? "active" : "";
+
+                    html += `<span class="move-num">${moveNum}.</span>`;
+                    html += `<span class="move white-move ${wActive}" onclick="replayGoTo(${i})">${wMove.san}</span>`;
+                    html += bMove
+                        ? `<span class="move black-move ${bActive}" onclick="replayGoTo(${i + 1})">${bMove.san}</span>`
+                        : `<span class="move"></span>`;
+                }
+                container.innerHTML = html;
+            }
+
+            function updateBoardToIndex() {
+                const fen = replayPositions[replayIndex + 1]; // +1 because index -1 = position 0
+                if (replayBoard) replayBoard.position(fen, true);
+                renderMoveList();
+                updateStatus();
+
+                // Scroll active move into view
+                const active = document.querySelector(
+                    ".move-list .move.active",
+                );
+                if (active)
+                    active.scrollIntoView({
+                        block: "nearest",
+                        behavior: "smooth",
+                    });
+            }
+
+            function updateStatus() {
+                const el = document.getElementById("current-status");
+                if (replayIndex < 0) {
+                    el.textContent = "Starting position — press ▶ to begin";
+                } else if (replayIndex >= replayMoves.length - 1) {
+                    const g = replayGame;
+                    el.textContent = `Game over — Final position after ${replayMoves.length} moves`;
+                } else {
+                    const m = replayMoves[replayIndex];
+                    const side = m.color === "w" ? "White" : "Black";
+                    el.textContent = `Move ${Math.floor(replayIndex / 2) + 1}: ${side} played ${m.san}`;
+                }
+            }
+
+            function replayNext() {
+                if (replayIndex < replayMoves.length - 1) {
+                    replayIndex++;
+                    updateBoardToIndex();
+                } else {
+                    stopAutoplay();
+                }
+            }
+
+            function replayPrev() {
+                if (replayIndex >= 0) {
+                    replayIndex--;
+                    updateBoardToIndex();
+                }
+            }
+
+            function replayGoStart() {
+                replayIndex = -1;
+                stopAutoplay();
+                updateBoardToIndex();
+            }
+
+            function replayGoEnd() {
+                replayIndex = replayMoves.length - 1;
+                stopAutoplay();
+                updateBoardToIndex();
+            }
+
+            function replayGoTo(idx) {
+                replayIndex = idx;
+                updateBoardToIndex();
+            }
+
+            function replayToggleAuto() {
+                if (autoplayInterval) {
+                    stopAutoplay();
+                } else {
+                    if (replayIndex >= replayMoves.length - 1) replayIndex = -1;
+                    autoplayInterval = setInterval(() => {
+                        if (replayIndex >= replayMoves.length - 1) {
+                            stopAutoplay();
+                            return;
+                        }
+                        replayNext();
+                    }, 800);
+                    document.getElementById("btn-autoplay").textContent =
+                        "⏸ Pause";
+                }
+            }
+
+            function stopAutoplay() {
+                if (autoplayInterval) clearInterval(autoplayInterval);
+                autoplayInterval = null;
+                const btn = document.getElementById("btn-autoplay");
+                if (btn) btn.textContent = "▶ Play";
+            }
+
+            function replayFlip() {
+                boardFlipped = !boardFlipped;
+                if (replayBoard) replayBoard.flip();
+            }
+
+            // Close modal
+            document
+                .getElementById("modal-close")
+                .addEventListener("click", () => {
+                    document
+                        .getElementById("modal-overlay")
+                        .classList.remove("active");
+                    stopAutoplay();
+                });
+            document
+                .getElementById("modal-overlay")
+                .addEventListener("click", (e) => {
+                    if (e.target === e.currentTarget) {
+                        e.currentTarget.classList.remove("active");
+                        stopAutoplay();
+                    }
+                });
+
+            // Keyboard shortcuts
+            document.addEventListener("keydown", (e) => {
+                if (
+                    !document
+                        .getElementById("modal-overlay")
+                        .classList.contains("active")
+                )
+                    return;
+                if (e.key === "Escape") {
+                    document
+                        .getElementById("modal-overlay")
+                        .classList.remove("active");
+                    stopAutoplay();
+                }
+                if (e.key === "ArrowRight") {
+                    e.preventDefault();
+                    replayNext();
+                }
+                if (e.key === "ArrowLeft") {
+                    e.preventDefault();
+                    replayPrev();
+                }
+                if (e.key === " ") {
+                    e.preventDefault();
+                    replayToggleAuto();
+                }
+                if (e.key === "Home") {
+                    e.preventDefault();
+                    replayGoStart();
+                }
+                if (e.key === "End") {
+                    e.preventDefault();
+                    replayGoEnd();
+                }
+            });
+
+            // ==========================================
+            // Init
+            // ==========================================
+            (async function init() {
+                await loadAllPGNs();
+                const rows = buildLeaderboard();
+                renderStats(rows);
+                renderTable(rows);
+            })();
+        </script>
+    </body>
+</html>

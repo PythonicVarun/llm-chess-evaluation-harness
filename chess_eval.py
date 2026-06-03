@@ -715,7 +715,9 @@ def _print_summary(results: list[GameResult], cfg: EvalConfig, log_file: Path) -
 
     # Calculate cost
     model_name = cfg.llm_model
-    pricing = cfg.model_pricing.get(model_name)
+    pricing = cfg.model_pricing.get(
+        model_name, cfg.model_pricing.get(model_name.split("/", 1)[1], None)
+    )
     if pricing is None:
         # Fallback search - case insensitive or substring
         for name, price in cfg.model_pricing.items():
@@ -752,7 +754,9 @@ def _print_summary(results: list[GameResult], cfg: EvalConfig, log_file: Path) -
         res_style = (
             "green"
             if r.winner == llm_color
-            else "red" if r.winner == sf_color else "yellow"
+            else "red"
+            if r.winner == sf_color
+            else "yellow"
         )
         tbl.add_row(
             str(r.game_index),

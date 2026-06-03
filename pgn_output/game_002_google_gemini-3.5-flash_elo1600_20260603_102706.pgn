@@ -1,0 +1,21 @@
+[Event "LLM Chess Evaluation"]
+[Site "Local"]
+[Date "2026.06.03"]
+[Round "2"]
+[White "google/gemini-3.5-flash"]
+[Black "Stockfish ELO1600"]
+[Result "0-1"]
+
+1. e4 g6 2. d4 Bg7 3. Nc3 c6 4. Nf3 a5 5. Bd3 b5 6. O-O b4 7. Ne2 d6 8. c3 bxc3
+9. bxc3 Nf6 10. Rb1 Ba6 11. Bxa6 Rxa6 12. Qd3 Nfd7 13. Ba3 Qc7 14. Rxb8+ Nxb8
+15. Rb1 Ra8 16. h3 O-O 17. Rb3 Ra7 18. Qb1 Nd7 19. e5 c5 20. exd6 exd6 21. Nf4
+Qc8 22. Nd5 Re8 23. Ne7+ Rxe7 24. Rb8 Nxb8 25. Qb6 Kh8 26. Qxd6 Rad7 27. Qxc5
+Qxc5 28. Bxc5 Re6 29. Ng5 Re8 30. Bd6 Na6 31. Be5 h5 32. Bxg7+ Kg8 33. Be5 Rxe5
+34. dxe5 Rd1+ 35. Kh2 Rf1 36. Kg3 Nc7 37. Ne4 Ra1 38. Nf6+ Kg7 39. Ne4 Kg8 40.
+Nf6+ Kf8 41. Nd7+ Kg8 42. Nf6+ Kh8 43. Nd5 Ne6 44. Nb6 Rxa2 45. Nc4 Ra1 46. Nd6
+Ra2 47. Nxf7+ Kg7 48. Nd6 Kg8 49. Nc4 g5 50. Kf3 a4 51. Ke3 h4 52. Nd2 a3 53.
+Nb3 Rb2 54. Na5 Rc2 55. Kd3 Ra2 56. Nb3 Rxf2 57. Nd2 Nf4+ 58. Kc2 Rxg2 59. Kb3
+Re2 60. Nf3 Ne6 61. Kxa3 Rg2 62. Nd4 Nxd4 63. cxd4 Re2 64. Kb4 Rf2 65. Kc5 Kg7
+66. Kd5 Kg6 67. Kd6 g4 68. hxg4 Rd2 69. e6 h3 70. e7 Kf7 71. Kd7 Rxd4+ 72. Kc7
+Rd1 73. e8=Q+ Kxe8 74. g5 Ke7 75. g6 h2 76. g7 Rg1 77. g8=Q Rxg8 78. Kb6 Rg4
+79. Kc5 h1=Q 80. Kb5 Kd6 81. Ka6 Qc6+ 82. Ka5 Ra4# 0-1
