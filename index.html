@@ -1086,7 +1086,14 @@
                         ...parsePGN(t),
                         rawPGN: t,
                         fileName: PGN_FILES[i].split("/").pop(),
-                    }));
+                    }))
+                    .filter((g) => {
+                        const m = g.llmModel.toLowerCase();
+                        return (
+                            m.endsWith("gemini-3.5-flash") ||
+                            m.startsWith("gpt-5.5")
+                        );
+                    });
             }
 
             function buildLeaderboard() {
@@ -1113,7 +1120,7 @@
 
                 // Sort by ELO descending first, then by win rate descending as tiebreaker
                 const rows = Object.values(groups)
-                    .filter((r) => r.wins > 0)
+                    .filter((r) => r.games.length > 0)
                     .sort((a, b) => {
                         if (b.elo !== a.elo) return b.elo - a.elo;
                         const wrA = a.games.length
@@ -1132,7 +1139,7 @@
             // Rendering
             // ==========================================
             function renderStats(rows) {
-                const activeGames = rows.flatMap(r => r.games);
+                const activeGames = rows.flatMap((r) => r.games);
                 const total = activeGames.length;
                 const models = new Set(activeGames.map((g) => g.llmModel)).size;
                 const wins = activeGames.filter(
