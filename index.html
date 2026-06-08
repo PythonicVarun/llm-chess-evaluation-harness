@@ -1025,28 +1025,68 @@
             <!-- Performance Matrix -->
             <div class="matrix-card-wrapper">
                 <div class="table-wrapper">
-                    <div class="table-header" style="flex-wrap: wrap; gap: 16px; align-items: center;">
-                        <div style="flex: 1; min-width: 280px;">
-                            <h2 style="font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+                    <div
+                        class="table-header"
+                        style="flex-wrap: wrap; gap: 16px; align-items: center"
+                    >
+                        <div style="flex: 1; min-width: 280px">
+                            <h2
+                                style="
+                                    font-size: 20px;
+                                    font-weight: 700;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 10px;
+                                "
+                            >
                                 <span class="icon">📊</span> Performance Matrix
                             </h2>
-                            <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
-                                Win rates mapped by Stockfish ELO (rows) vs. LLM Models & reasoning effort (columns). Click any active cell to inspect details.
+                            <p
+                                style="
+                                    font-size: 13px;
+                                    color: var(--text-secondary);
+                                    margin-top: 4px;
+                                "
+                            >
+                                Win rates mapped by Stockfish ELO (rows) vs. LLM
+                                Models & reasoning effort (columns). Click any
+                                active cell to inspect details.
                             </p>
                         </div>
                         <div class="matrix-legend">
-                            <span style="color: var(--text-muted); font-size: 12px; margin-right: 4px;">Win Rate Legend:</span>
-                            <div class="legend-item"><span class="legend-color high"></span> <span>≥60%</span></div>
-                            <div class="legend-item"><span class="legend-color med"></span> <span>30-59%</span></div>
-                            <div class="legend-item"><span class="legend-color low"></span> <span>&lt;30%</span></div>
-                            <div class="legend-item"><span class="legend-color empty"></span> <span>No games</span></div>
+                            <span
+                                style="
+                                    color: var(--text-muted);
+                                    font-size: 12px;
+                                    margin-right: 4px;
+                                "
+                                >Win Rate Legend:</span
+                            >
+                            <div class="legend-item">
+                                <span class="legend-color high"></span>
+                                <span>≥60%</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color med"></span>
+                                <span>30-59%</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color low"></span>
+                                <span>&lt;30%</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color empty"></span>
+                                <span>No games</span>
+                            </div>
                         </div>
                     </div>
                     <div class="matrix-scroll-wrapper">
                         <div id="matrix-container">
                             <div class="loading">
                                 <div class="spinner"></div>
-                                <span style="color: var(--text-muted)">Generating matrix…</span>
+                                <span style="color: var(--text-muted)"
+                                    >Generating matrix…</span
+                                >
                             </div>
                         </div>
                     </div>
@@ -1923,10 +1963,10 @@
             function focusLeaderboardGroup(model, reasoning, elo) {
                 const selector = `tr[data-model="${model}"][data-reasoning="${reasoning}"][data-elo="${elo}"]`;
                 const tr = document.querySelector(selector);
-                
+
                 if (tr) {
                     tr.scrollIntoView({ behavior: "smooth", block: "center" });
-                    
+
                     // Highlight flash effect
                     tr.style.transition = "background-color 0.2s ease";
                     tr.style.backgroundColor = "var(--accent-glow)";
@@ -1936,21 +1976,28 @@
                             tr.style.backgroundColor = "";
                         }, 500);
                     }, 1000);
-                    
+
                     // Open sub-table if not already open
                     const onclickAttr = tr.getAttribute("onclick");
                     if (onclickAttr) {
-                        const match = onclickAttr.match(/toggleGames\('([^']+)'/);
+                        const match = onclickAttr.match(
+                            /toggleGames\('([^']+)'/,
+                        );
                         if (match) {
                             const gamesId = match[1];
                             const gamesRow = document.getElementById(gamesId);
-                            if (gamesRow && !gamesRow.classList.contains("open")) {
+                            if (
+                                gamesRow &&
+                                !gamesRow.classList.contains("open")
+                            ) {
                                 toggleGames(gamesId, tr);
                             }
                         }
                     }
                 } else {
-                    console.log(`Row not found for model: ${model}, reasoning: ${reasoning}, elo: ${elo}`);
+                    console.log(
+                        `Row not found for model: ${model}, reasoning: ${reasoning}, elo: ${elo}`,
+                    );
                 }
             }
 
@@ -1959,16 +2006,19 @@
                 if (!container) return;
 
                 if (!games || games.length === 0) {
-                    container.innerHTML = '<div style="padding: 30px; text-align: center; color: var(--text-secondary);">No games available for matrix visualization.</div>';
+                    container.innerHTML =
+                        '<div style="padding: 30px; text-align: center; color: var(--text-secondary);">No games available for matrix visualization.</div>';
                     return;
                 }
 
                 // Get all unique ELO levels, sorted descending
-                const elos = Array.from(new Set(games.map(g => g.elo))).sort((a, b) => b - a);
+                const elos = Array.from(new Set(games.map((g) => g.elo))).sort(
+                    (a, b) => b - a,
+                );
 
                 // Identify active model-reasoning combinations
                 const modelReasoningMap = {};
-                games.forEach(g => {
+                games.forEach((g) => {
                     if (!modelReasoningMap[g.llmModel]) {
                         modelReasoningMap[g.llmModel] = new Set();
                     }
@@ -1979,13 +2029,24 @@
                 function getModelRank(m) {
                     const name = m.toLowerCase();
                     if (name.includes("gpt-5.5")) return 10;
-                    if (name.includes("gpt-5.4") && !name.includes("mini") && !name.includes("nano")) return 20;
+                    if (
+                        name.includes("gpt-5.4") &&
+                        !name.includes("mini") &&
+                        !name.includes("nano")
+                    )
+                        return 20;
                     if (name.includes("gpt-5.4-mini")) return 30;
                     if (name.includes("gpt-5.4-nano")) return 40;
-                    if (name.includes("gpt-4.1") && !name.includes("mini") && !name.includes("nano")) return 50;
+                    if (
+                        name.includes("gpt-4.1") &&
+                        !name.includes("mini") &&
+                        !name.includes("nano")
+                    )
+                        return 50;
                     if (name.includes("gpt-4.1-mini")) return 60;
                     if (name.includes("gpt-4.1-nano")) return 70;
-                    if (name.includes("gpt-4o") && !name.includes("mini")) return 80;
+                    if (name.includes("gpt-4o") && !name.includes("mini"))
+                        return 80;
                     if (name.includes("gpt-4o-mini")) return 90;
                     if (name.includes("gemini-3.5-flash")) return 100;
                     if (name.includes("gemini-3.1-flash-lite")) return 110;
@@ -1993,39 +2054,52 @@
                 }
 
                 // Sort models based on ranking, then alphabetically
-                const sortedModels = Object.keys(modelReasoningMap).sort((a, b) => {
-                    const rankA = getModelRank(a);
-                    const rankB = getModelRank(b);
-                    if (rankA !== rankB) return rankA - rankB;
-                    return a.localeCompare(b);
-                });
+                const sortedModels = Object.keys(modelReasoningMap).sort(
+                    (a, b) => {
+                        const rankA = getModelRank(a);
+                        const rankB = getModelRank(b);
+                        if (rankA !== rankB) return rankA - rankB;
+                        return a.localeCompare(b);
+                    },
+                );
 
                 // Reasoning order ranking
-                const reasoningOrder = { "none": 1, "default": 2, "low": 3, "medium": 4, "high": 5 };
+                const reasoningOrder = {
+                    none: 1,
+                    default: 2,
+                    low: 3,
+                    medium: 4,
+                    high: 5,
+                };
                 function sortReasoning(a, b) {
-                    return (reasoningOrder[a] || 99) - (reasoningOrder[b] || 99);
+                    return (
+                        (reasoningOrder[a] || 99) - (reasoningOrder[b] || 99)
+                    );
                 }
 
                 // Flatten to a list of columns
                 const columns = [];
-                sortedModels.forEach(model => {
-                    const efforts = Array.from(modelReasoningMap[model]).sort(sortReasoning);
+                sortedModels.forEach((model) => {
+                    const efforts = Array.from(modelReasoningMap[model]).sort(
+                        sortReasoning,
+                    );
                     efforts.forEach((effort, index) => {
                         columns.push({
                             model: model,
                             effort: effort,
                             isFirstOfModel: index === 0,
-                            spanCount: efforts.length
+                            spanCount: efforts.length,
                         });
                     });
                 });
 
                 // Build Table HTML
                 let html = '<table class="matrix-table">';
-                
+
                 // Row 1 Header: Models
-                html += '<thead><tr><th rowspan="2" style="vertical-align: middle;">Stockfish ELO</th>';
-                sortedModels.forEach(model => {
+                html +=
+                    '<thead><tr><th rowspan="2" style="vertical-align: middle;">Stockfish ELO</th>';
+                sortedModels.forEach((model) => {
                     const span = modelReasoningMap[model].size;
                     const provider = getProvider(model);
                     html += `<th colspan="${span}" class="model-header-cell border-left-group">
@@ -2035,56 +2109,70 @@
                         </div>
                     </th>`;
                 });
-                html += '</tr>';
+                html += "</tr>";
 
                 // Row 2 Header: Reasoning Effort
-                html += '<tr>';
-                columns.forEach(col => {
-                    const classList = col.isFirstOfModel ? 'reasoning-header-cell border-left-group' : 'reasoning-header-cell';
+                html += "<tr>";
+                columns.forEach((col) => {
+                    const classList = col.isFirstOfModel
+                        ? "reasoning-header-cell border-left-group"
+                        : "reasoning-header-cell";
                     const effortClass = `reasoning-${col.effort}`;
                     html += `<th class="${classList}"><span class="reasoning-badge ${effortClass}" style="font-size:9px; padding:2px 6px;">${col.effort}</span></th>`;
                 });
-                html += '</tr></thead><tbody>';
+                html += "</tr></thead><tbody>";
 
                 // Data Rows: ELO levels
-                elos.forEach(elo => {
+                elos.forEach((elo) => {
                     html += `<tr><td class="elo-label-cell">⚡ ${elo}</td>`;
-                    
-                    columns.forEach(col => {
-                        const cellGames = games.filter(g => g.elo === elo && g.llmModel === col.model && g.reasoningEffort === col.effort);
+
+                    columns.forEach((col) => {
+                        const cellGames = games.filter(
+                            (g) =>
+                                g.elo === elo &&
+                                g.llmModel === col.model &&
+                                g.reasoningEffort === col.effort,
+                        );
                         const isFirst = col.isFirstOfModel;
                         const tdClassList = [];
-                        if (isFirst) tdClassList.push('border-left-group');
+                        if (isFirst) tdClassList.push("border-left-group");
 
                         if (cellGames.length === 0) {
-                            tdClassList.push('matrix-cell cell-empty');
-                            html += `<td class="${tdClassList.join(' ')}">—</td>`;
+                            tdClassList.push("matrix-cell cell-empty");
+                            html += `<td class="${tdClassList.join(" ")}">—</td>`;
                         } else {
-                            const wins = cellGames.filter(g => g.llmResult === 'win').length;
-                            const draws = cellGames.filter(g => g.llmResult === 'draw').length;
-                            const losses = cellGames.filter(g => g.llmResult === 'loss').length;
+                            const wins = cellGames.filter(
+                                (g) => g.llmResult === "win",
+                            ).length;
+                            const draws = cellGames.filter(
+                                (g) => g.llmResult === "draw",
+                            ).length;
+                            const losses = cellGames.filter(
+                                (g) => g.llmResult === "loss",
+                            ).length;
                             const total = cellGames.length;
-                            const winRate = (wins + 0.5 * draws) / total * 100;
-                            
-                            let perfClass = 'cell-low';
-                            if (winRate >= 60) perfClass = 'cell-high';
-                            else if (winRate >= 30) perfClass = 'cell-med';
-                            
-                            tdClassList.push('matrix-cell');
+                            const winRate =
+                                ((wins + 0.5 * draws) / total) * 100;
+
+                            let perfClass = "cell-low";
+                            if (winRate >= 60) perfClass = "cell-high";
+                            else if (winRate >= 30) perfClass = "cell-med";
+
+                            tdClassList.push("matrix-cell");
                             tdClassList.push(perfClass);
 
                             const recordStr = `${wins}W-${draws}D-${losses}L`;
-                            html += `<td class="${tdClassList.join(' ')}" onclick="focusLeaderboardGroup('${escJs(col.model)}', '${escJs(col.effort)}', ${elo})" title="${escHtml(col.model)} (${col.effort}) at ELO ${elo}: ${recordStr} in ${total} games">
+                            html += `<td class="${tdClassList.join(" ")}" onclick="focusLeaderboardGroup('${escJs(col.model)}', '${escJs(col.effort)}', ${elo})" title="${escHtml(col.model)} (${col.effort}) at ELO ${elo}: ${recordStr} in ${total} games">
                                 <span style="font-size: 13px;">${winRate.toFixed(0)}%</span>
                                 <span class="cell-record">${recordStr}</span>
                             </td>`;
                         }
                     });
-                    
-                    html += '</tr>';
+
+                    html += "</tr>";
                 });
 
-                html += '</tbody></table>';
+                html += "</tbody></table>";
                 container.innerHTML = html;
             }
 
