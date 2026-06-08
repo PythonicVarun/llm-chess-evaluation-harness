@@ -108,26 +108,48 @@ python chess_eval.py --model meta-llama/Meta-Llama-3-8B-Instruct --reasoning-eff
 
 Below is a summary of the matches played between various LLM models and Stockfish at different target ELO levels. The table shows the number of wins, losses, draws, total games played, and the resulting win rate for each model at each ELO level.
 
-| Model                     | Stockfish ELO | Wins | Losses | Draws | Total Games | Win Rate |
-| :------------------------ | :-----------: | :--: | :----: | :---: | :---------: | :------: |
-| **gemini-3.5-flash**      |      2000     |  0   |   3    |   0   |      3      |   0.0%   |
-| **gemini-3.5-flash**      |      1800     |  1   |   1    |   1   |      3      |  33.3%   |
-| **gemini-3.5-flash**      |      1600     |  1   |   2    |   0   |      3      |  33.3%   |
-| **gemini-3.5-flash**      |      1500     |  2   |   1    |   0   |      3      |  66.7%   |
-| **gpt-5.4-nano**          |      1500     |  0   |   2    |   0   |      2      |   0.0%   |
-| **gemini-3.5-flash**      |      1450     |  1   |   2    |   0   |      3      |  33.3%   |
-| **gemini-3.5-flash**      |      1400     |  1   |   1    |   1   |      3      |  33.3%   |
-| **gemini-3.1-flash-lite** |      1320     |  0   |   3    |   0   |      3      |   0.0%   |
-| **gemini-3.5-flash**      |      1320     |  2   |   1    |   0   |      3      |  66.7%   |
-| **gpt-4.1**               |      1320     |  0   |   3    |   0   |      3      |   0.0%   |
-| **gpt-4.1-mini**          |      1320     |  0   |   3    |   0   |      3      |   0.0%   |
-| **gpt-4.1-nano**          |      1320     |  0   |   3    |   0   |      3      |   0.0%   |
-| **gpt-4o**                |      1320     |  0   |   3    |   0   |      3      |   0.0%   |
-| **gpt-4o-mini**           |      1320     |  0   |   3    |   0   |      3      |   0.0%   |
-| **gpt-5.4**               |      1320     |  0   |   3    |   0   |      3      |   0.0%   |
-| **gpt-5.4-mini**          |      1320     |  0   |   3    |   0   |      3      |   0.0%   |
-| **gpt-5.4-nano**          |      1320     |  0   |   6    |   0   |      6      |   0.0%   |
-| **gpt-5.5**               |      1320     |  3   |   0    |   0   |      3      |  100.0%  |
+| Model                     | Reasoning | Stockfish ELO | Wins | Losses | Draws | Total Games | Win Rate |
+| :------------------------ | :-------: | :-----------: | :--: | :----: | :---: | :---------: | :------: |
+| **gemini-3.5-flash**      |  default  |     2000      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-5.5**               |   none    |     2000      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-5.5**               |   none    |     1900      |  0   |   2    |   1   |      3      |   0.0%   |
+| **gemini-3.5-flash**      |  default  |     1800      |  1   |   1    |   1   |      3      |  33.3%   |
+| **gpt-5.5**               |   none    |     1700      |  0   |   2    |   1   |      3      |   0.0%   |
+| **gpt-5.5**               |    low    |     1700      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gemini-3.5-flash**      |  default  |     1600      |  1   |   2    |   0   |      3      |  33.3%   |
+| **gemini-3.5-flash**      |  default  |     1500      |  2   |   1    |   0   |      3      |  66.7%   |
+| **gpt-5.4-mini**          |   high    |     1500      |  0   |   2    |   0   |      2      |   0.0%   |
+| **gpt-5.4-nano**          |  default  |     1500      |  0   |   2    |   0   |      2      |   0.0%   |
+| **gpt-5.4-nano**          |   none    |     1500      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-5.4-nano**          |    low    |     1500      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-5.4-nano**          |  medium   |     1500      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-5.5**               |   none    |     1500      |  0   |   2    |   1   |      3      |   0.0%   |
+| **gpt-5.5**               |    low    |     1500      |  1   |   1    |   1   |      3      |  33.3%   |
+| **gemini-3.5-flash**      |  default  |     1450      |  1   |   2    |   0   |      3      |  33.3%   |
+| **gemini-3.5-flash**      |  default  |     1400      |  1   |   1    |   1   |      3      |  33.3%   |
+| **gemini-3.1-flash-lite** |  default  |     1320      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gemini-3.5-flash**      |  default  |     1320      |  2   |   1    |   0   |      3      |  66.7%   |
+| **gpt-4.1**               |  default  |     1320      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-4.1-mini**          |  default  |     1320      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-4.1-nano**          |  default  |     1320      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-4o**                |  default  |     1320      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-4o-mini**           |  default  |     1320      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-5.4**               |  default  |     1320      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-5.4-mini**          |  default  |     1320      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-5.4-mini**          |   none    |     1320      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-5.4-mini**          |    low    |     1320      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-5.4-mini**          |  medium   |     1320      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-5.4-mini**          |   high    |     1320      |  0   |   2    |   1   |      3      |   0.0%   |
+| **gpt-5.4-nano**          |  default  |     1320      |  0   |   6    |   0   |      6      |   0.0%   |
+| **gpt-5.4-nano**          |   none    |     1320      |  0   |   2    |   1   |      3      |   0.0%   |
+| **gpt-5.4-nano**          |    low    |     1320      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-5.4-nano**          |  medium   |     1320      |  0   |   4    |   2   |      6      |   0.0%   |
+| **gpt-5.4-nano**          |   high    |     1320      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gpt-5.5**               |  default  |     1320      |  3   |   0    |   0   |      3      |  100.0%  |
+| **gpt-5.5**               |   none    |     1320      |  0   |   1    |   1   |      2      |   0.0%   |
+| **gpt-5.5**               |    low    |     1320      |  1   |   1    |   1   |      3      |  33.3%   |
+| **gpt-5.5**               |  medium   |     1320      |  2   |   0    |   1   |      3      |  66.7%   |
+| **gpt-5.5**               |   high    |     1320      |  1   |   0    |   0   |      1      |  100.0%  |
 
 ## 🪙 Token & Cost Summarization
 

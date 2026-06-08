@@ -8,6 +8,10 @@
             name="description"
             content="Interactive leaderboard for LLM vs Stockfish chess evaluation matches with full game replay."
         />
+        <link
+            rel="icon"
+            href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%2210 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>♟️</text></svg>"
+        />
 
         <!-- Google Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -786,6 +790,72 @@
             ::-webkit-scrollbar-thumb:hover {
                 background: var(--text-muted);
             }
+
+            /* ===== Source Selector & Badges ===== */
+            .source-selector {
+                display: flex;
+                background: var(--bg-primary);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                padding: 3px;
+                gap: 2px;
+            }
+            .source-btn {
+                background: transparent;
+                border: none;
+                color: var(--text-secondary);
+                padding: 6px 14px;
+                font-size: 12px;
+                font-weight: 600;
+                border-radius: calc(var(--radius-sm) - 2px);
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .source-btn:hover {
+                color: var(--text-primary);
+            }
+            .source-btn.active {
+                background: var(--surface);
+                color: var(--accent);
+                box-shadow: var(--shadow-sm);
+            }
+            .reasoning-badge {
+                font-size: 10px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+                padding: 3px 8px;
+                border-radius: 999px;
+                border: 1px solid;
+                display: inline-block;
+                text-align: center;
+                font-family: "JetBrains Mono", monospace;
+            }
+            .reasoning-high {
+                color: var(--purple);
+                border-color: rgba(167, 139, 250, 0.4);
+                background: rgba(167, 139, 250, 0.1);
+            }
+            .reasoning-medium {
+                color: var(--blue);
+                border-color: rgba(96, 165, 250, 0.4);
+                background: rgba(96, 165, 250, 0.1);
+            }
+            .reasoning-low {
+                color: var(--yellow);
+                border-color: rgba(251, 191, 36, 0.4);
+                background: rgba(251, 191, 36, 0.1);
+            }
+            .reasoning-none {
+                color: var(--text-muted);
+                border-color: var(--border);
+                background: rgba(85, 85, 112, 0.05);
+            }
+            .reasoning-default {
+                color: var(--text-secondary);
+                border-color: var(--border);
+                background: rgba(255, 255, 255, 0.05);
+            }
         </style>
     </head>
     <body>
@@ -830,8 +900,40 @@
 
             <!-- Table -->
             <div class="table-wrapper">
-                <div class="table-header">
-                    <h2><span class="icon">🏆</span> Model Performance</h2>
+                <div class="table-header" style="flex-wrap: wrap; gap: 16px">
+                    <div
+                        style="
+                            display: flex;
+                            align-items: center;
+                            gap: 16px;
+                            flex-wrap: wrap;
+                        "
+                    >
+                        <h2><span class="icon">🏆</span> Model Performance</h2>
+                        <div class="source-selector">
+                            <button
+                                class="source-btn active"
+                                id="btn-merged"
+                                onclick="setSource('merged')"
+                            >
+                                Merged
+                            </button>
+                            <button
+                                class="source-btn"
+                                id="btn-v2"
+                                onclick="setSource('v2')"
+                            >
+                                V2 Sweep (JSONL)
+                            </button>
+                            <button
+                                class="source-btn"
+                                id="btn-v1"
+                                onclick="setSource('v1')"
+                            >
+                                V1 Matches (PGN)
+                            </button>
+                        </div>
+                    </div>
                     <span class="table-hint"
                         >Click a row to see individual games & replay</span
                     >
@@ -1024,7 +1126,7 @@
 
                 // Extract ELO from the Stockfish player name
                 const sfPlayer = llmColor === "white" ? black : white;
-                const eloMatch = sfPlayer.match(/ELO(\d+)/i);
+                const eloMatch = sfPlayer.match(/ELO\s*(\d+)/i);
                 const elo = eloMatch ? parseInt(eloMatch[1]) : 0;
 
                 // Determine result relative to LLM
@@ -1054,6 +1156,7 @@
                     llmResult,
                     date: headers["Date"] || "",
                     round: headers["Round"] || "",
+                    reasoningEffort: headers["ReasoningEffort"] || "none",
                 };
             }
 
@@ -1075,40 +1178,117 @@
             // Data Processing
             // ==========================================
             let allGames = [];
+            let currentSource = "merged"; // Default to merged
 
-            async function loadAllPGNs() {
-                const fetches = PGN_FILES.map((f) =>
-                    fetch(f)
-                        .then((r) => (r.ok ? r.text() : ""))
-                        .catch(() => ""),
-                );
-                const texts = await Promise.all(fetches);
-                allGames = texts
-                    .filter((t) => t.trim())
-                    .map((t, i) => ({
-                        ...parsePGN(t),
-                        rawPGN: t,
-                        fileName: PGN_FILES[i].split("/").pop(),
-                    }))
-                    .filter((g) => {
-                        const m = g.llmModel.toLowerCase();
-                        return (
-                            m.endsWith("gemini-3.5-flash") ||
-                            m.startsWith("gpt-5.5")
+            async function loadGames() {
+                allGames = [];
+                let v2Games = [];
+                let v1Games = [];
+
+                if (currentSource === "v2" || currentSource === "merged") {
+                    try {
+                        const response = await fetch(
+                            "v2/chess-evaluation/games/games.jsonl",
                         );
-                    });
+                        if (!response.ok)
+                            throw new Error("Failed to load games.jsonl");
+                        const text = await response.text();
+                        const lines = text
+                            .split("\n")
+                            .filter((line) => line.trim());
+                        v2Games = lines.map((line) => {
+                            const g = JSON.parse(line);
+                            const parsed = parsePGN(g.pgn);
+                            return {
+                                ...parsed,
+                                rawPGN: g.pgn,
+                                fileName: g.pgn_path
+                                    ? g.pgn_path.split("/").pop()
+                                    : "game.pgn",
+                                reasoningEffort:
+                                    g.reasoning_effort ||
+                                    parsed.reasoningEffort ||
+                                    "none",
+                            };
+                        });
+                    } catch (err) {
+                        console.error("Error loading games.jsonl:", err);
+                    }
+                }
+
+                if (currentSource === "v1" || currentSource === "merged") {
+                    const fetches = PGN_FILES.map((f) =>
+                        fetch(f)
+                            .then((r) => (r.ok ? r.text() : ""))
+                            .catch(() => ""),
+                    );
+                    const texts = await Promise.all(fetches);
+                    v1Games = texts
+                        .filter((t) => t.trim())
+                        .map((t, i) => {
+                            const parsed = parsePGN(t);
+                            return {
+                                ...parsed,
+                                rawPGN: t,
+                                fileName: PGN_FILES[i].split("/").pop(),
+                                reasoningEffort: "default",
+                            };
+                        });
+
+                    if (currentSource === "v1") {
+                        v1Games = v1Games.filter((g) => {
+                            const m = g.llmModel.toLowerCase();
+                            return (
+                                m.endsWith("gemini-3.5-flash") ||
+                                m.startsWith("gpt-5.5")
+                            );
+                        });
+                    }
+                }
+
+                allGames = [...v2Games, ...v1Games];
+            }
+
+            // ==========================================
+            // Sorting State & Helpers
+            // ==========================================
+            let sortColumn = "elo"; // "model", "reasoning", "elo", "games", "wins", "losses", "draws", "winrate"
+            let sortDirection = "desc";
+
+            function sortBy(column) {
+                if (sortColumn === column) {
+                    sortDirection = sortDirection === "asc" ? "desc" : "asc";
+                } else {
+                    sortColumn = column;
+                    sortDirection =
+                        column === "model" || column === "reasoning"
+                            ? "asc"
+                            : "desc";
+                }
+                const rows = buildLeaderboard();
+                renderStats(rows);
+                renderTable(rows);
+            }
+
+            function getSortArrow(column) {
+                if (sortColumn !== column)
+                    return '<span class="sort-arrow">↕</span>';
+                return sortDirection === "asc"
+                    ? '<span class="sort-arrow">▲</span>'
+                    : '<span class="sort-arrow">▼</span>';
             }
 
             function buildLeaderboard() {
-                // Group by (model, elo)
+                // Group by (model, reasoningEffort, elo)
                 const groups = {};
                 for (const g of allGames) {
-                    const key = `${g.llmModel}::${g.elo}`;
+                    const key = `${g.llmModel}::${g.reasoningEffort}::${g.elo}`;
                     if (!groups[key]) {
                         groups[key] = {
                             model: g.llmModel,
                             displayModel: g.displayModel,
                             elo: g.elo,
+                            reasoningEffort: g.reasoningEffort,
                             games: [],
                             wins: 0,
                             losses: 0,
@@ -1121,19 +1301,59 @@
                     else if (g.llmResult === "draw") groups[key].draws++;
                 }
 
-                // Sort by ELO descending first, then by win rate descending as tiebreaker
-                const rows = Object.values(groups)
-                    .filter((r) => r.games.length > 0)
-                    .sort((a, b) => {
-                        if (b.elo !== a.elo) return b.elo - a.elo;
-                        const wrA = a.games.length
-                            ? a.wins / a.games.length
-                            : 0;
-                        const wrB = b.games.length
-                            ? b.wins / b.games.length
-                            : 0;
+                let rows = Object.values(groups).filter(
+                    (r) => r.games.length > 0,
+                );
+
+                // Sort rows dynamically
+                rows.sort((a, b) => {
+                    let valA, valB;
+                    const wrA = a.games.length
+                        ? (a.wins / a.games.length) * 100
+                        : 0;
+                    const wrB = b.games.length
+                        ? (b.wins / b.games.length) * 100
+                        : 0;
+
+                    if (sortColumn === "model") {
+                        valA = a.model.toLowerCase();
+                        valB = b.model.toLowerCase();
+                    } else if (sortColumn === "reasoning") {
+                        valA = a.reasoningEffort.toLowerCase();
+                        valB = b.reasoningEffort.toLowerCase();
+                    } else if (sortColumn === "elo") {
+                        valA = a.elo;
+                        valB = b.elo;
+                    } else if (sortColumn === "games") {
+                        valA = a.games.length;
+                        valB = b.games.length;
+                    } else if (sortColumn === "wins") {
+                        valA = a.wins;
+                        valB = b.wins;
+                    } else if (sortColumn === "losses") {
+                        valA = a.losses;
+                        valB = b.losses;
+                    } else if (sortColumn === "draws") {
+                        valA = a.draws;
+                        valB = b.draws;
+                    } else if (sortColumn === "winrate") {
+                        valA = wrA;
+                        valB = wrB;
+                    } else {
+                        valA = a.elo;
+                        valB = b.elo;
+                    }
+
+                    if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+                    if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+
+                    // Tiebreakers: elo desc, then winrate desc
+                    if (sortColumn !== "elo" && b.elo !== a.elo)
+                        return b.elo - a.elo;
+                    if (sortColumn !== "winrate" && wrB !== wrA)
                         return wrB - wrA;
-                    });
+                    return 0;
+                });
 
                 return rows;
             }
@@ -1168,13 +1388,14 @@
                 let html = `<table>
         <thead><tr>
           <th>Rank</th>
-          <th>Model</th>
-          <th>vs Stockfish ELO</th>
-          <th>Games</th>
-          <th>Wins</th>
-          <th>Losses</th>
-          <th>Draws</th>
-          <th>Win Rate</th>
+          <th class="${sortColumn === "model" ? "sorted" : ""}" onclick="sortBy('model')">Model ${getSortArrow("model")}</th>
+          <th class="${sortColumn === "reasoning" ? "sorted" : ""}" onclick="sortBy('reasoning')">Reasoning ${getSortArrow("reasoning")}</th>
+          <th class="${sortColumn === "elo" ? "sorted" : ""}" onclick="sortBy('elo')">vs Stockfish ELO ${getSortArrow("elo")}</th>
+          <th class="${sortColumn === "games" ? "sorted" : ""}" onclick="sortBy('games')">Games ${getSortArrow("games")}</th>
+          <th class="${sortColumn === "wins" ? "sorted" : ""}" onclick="sortBy('wins')">Wins ${getSortArrow("wins")}</th>
+          <th class="${sortColumn === "losses" ? "sorted" : ""}" onclick="sortBy('losses')">Losses ${getSortArrow("losses")}</th>
+          <th class="${sortColumn === "draws" ? "sorted" : ""}" onclick="sortBy('draws')">Draws ${getSortArrow("draws")}</th>
+          <th class="${sortColumn === "winrate" ? "sorted" : ""}" onclick="sortBy('winrate')">Win Rate ${getSortArrow("winrate")}</th>
         </tr></thead><tbody>`;
 
                 rows.forEach((row, i) => {
@@ -1185,6 +1406,7 @@
                     const provider = getProvider(row.model);
                     const rowId = `row-${i}`;
                     const gamesId = `games-${i}`;
+                    const reasoningClass = `reasoning-${row.reasoningEffort}`;
 
                     html += `<tr onclick="toggleGames('${gamesId}', this)" data-row-id="${rowId}">
           <td style="font-weight:700; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">${i + 1}</td>
@@ -1194,6 +1416,7 @@
               ${escHtml(row.model)}
             </div>
           </td>
+          <td><span class="reasoning-badge ${reasoningClass}">${row.reasoningEffort}</span></td>
           <td><span class="elo-badge">⚡ ${row.elo}</span></td>
           <td style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">${total}</td>
           <td><span class="result-pill win">${row.wins}</span></td>
@@ -1208,7 +1431,7 @@
         </tr>`;
 
                     // Expandable games sub-row
-                    html += `<tr class="games-row" id="${gamesId}"><td colspan="8">
+                    html += `<tr class="games-row" id="${gamesId}"><td colspan="9">
           <div class="games-inner">
             <h4>📋 Individual Games</h4>
             <div class="games-list">`;
@@ -1313,8 +1536,12 @@
                 stopAutoplay();
 
                 // Render modal meta
+                const reasoningText =
+                    g.reasoningEffort && g.reasoningEffort !== "none"
+                        ? ` (${g.reasoningEffort} reasoning)`
+                        : "";
                 document.getElementById("modal-title").textContent =
-                    `${g.displayModel} vs Stockfish ${g.elo}`;
+                    `${g.displayModel}${reasoningText} vs Stockfish ${g.elo}`;
                 document.getElementById("game-meta").innerHTML = `
         <span class="key">Event</span><span class="val">${escHtml(g.headers.Event || "")}</span>
         <span class="key">Date</span><span class="val">${escHtml(g.date)}</span>
@@ -1516,14 +1743,43 @@
                 }
             });
 
-            // ==========================================
-            // Init
-            // ==========================================
-            (async function init() {
-                await loadAllPGNs();
+            async function setSource(source) {
+                if (currentSource === source) return;
+                currentSource = source;
+
+                // Update active states
+                document
+                    .getElementById("btn-merged")
+                    .classList.toggle("active", source === "merged");
+                document
+                    .getElementById("btn-v2")
+                    .classList.toggle("active", source === "v2");
+                document
+                    .getElementById("btn-v1")
+                    .classList.toggle("active", source === "v1");
+
+                await init();
+            }
+
+            async function init() {
+                const container = document.getElementById("table-container");
+                container.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <span style="color: var(--text-muted)">Loading game data…</span>
+                    </div>
+                `;
+                await loadGames();
                 const rows = buildLeaderboard();
                 renderStats(rows);
                 renderTable(rows);
+            }
+
+            // ==========================================
+            // Init
+            // ==========================================
+            (async function pageLoad() {
+                await init();
             })();
         </script>
     </body>
