@@ -47,8 +47,10 @@
                 --green-bg: #34d39915;
                 --red: #f87171;
                 --red-bg: #f8717115;
-                --yellow: #fbbf24;
-                --yellow-bg: #fbbf2415;
+                --yellow: #facc15;
+                --yellow-bg: rgba(250, 204, 21, 0.15);
+                --orange: #ea580c;
+                --orange-bg: rgba(234, 88, 12, 0.15);
                 --blue: #60a5fa;
                 --purple: #a78bfa;
                 --gradient-1: linear-gradient(
@@ -893,8 +895,12 @@
                 border-color: rgba(52, 211, 153, 0.4);
             }
             .matrix-legend .legend-color.med {
-                background: rgba(251, 191, 36, 0.15);
-                border-color: rgba(251, 191, 36, 0.4);
+                background: rgba(96, 165, 250, 0.15);
+                border-color: rgba(96, 165, 250, 0.4);
+            }
+            .matrix-legend .legend-color.orange {
+                background: rgba(250, 204, 21, 0.15);
+                border-color: rgba(250, 204, 21, 0.4);
             }
             .matrix-legend .legend-color.low {
                 background: rgba(248, 113, 113, 0.15);
@@ -958,9 +964,14 @@
                 border-color: rgba(52, 211, 153, 0.2);
             }
             .matrix-table td.matrix-cell.cell-med {
-                background: rgba(251, 191, 36, 0.12);
+                background: rgba(96, 165, 250, 0.12);
+                color: var(--blue);
+                border-color: rgba(96, 165, 250, 0.2);
+            }
+            .matrix-table td.matrix-cell.cell-orange {
+                background: rgba(250, 204, 21, 0.12);
                 color: var(--yellow);
-                border-color: rgba(251, 191, 36, 0.2);
+                border-color: rgba(250, 204, 21, 0.2);
             }
             .matrix-table td.matrix-cell.cell-low {
                 background: rgba(248, 113, 113, 0.12);
@@ -979,6 +990,55 @@
                 font-weight: 500;
                 opacity: 0.7;
                 margin-top: 2px;
+            }
+
+            /* ===== Performance Matrix View Styles ===== */
+            .matrix-table td.matrix-cell.cell-compact {
+                padding: 6px 8px;
+                vertical-align: middle;
+            }
+            .matrix-cell-compact-content {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                align-items: stretch;
+            }
+            .sub-part-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 8px;
+                font-size: 11px;
+                background: rgba(255, 255, 255, 0.04);
+                padding: 4px 8px;
+                border-radius: var(--radius-sm);
+                border: 1px solid rgba(255, 255, 255, 0.03);
+                transition: background 0.15s ease;
+            }
+            .sub-part-row:hover {
+                background: rgba(255, 255, 255, 0.09);
+                border-color: rgba(255, 255, 255, 0.08);
+            }
+            .sub-part-label {
+                color: var(--text-secondary);
+                font-weight: 500;
+                text-align: left;
+            }
+            .sub-part-value {
+                font-weight: 700;
+                font-family: "JetBrains Mono", monospace;
+            }
+            .text-high {
+                color: var(--green) !important;
+            }
+            .text-med {
+                color: var(--blue) !important;
+            }
+            .text-orange {
+                color: var(--yellow) !important;
+            }
+            .text-low {
+                color: var(--red) !important;
             }
         </style>
     </head>
@@ -1053,6 +1113,22 @@
                                 active cell to inspect details.
                             </p>
                         </div>
+                        <div class="source-selector" style="margin-right: 8px;">
+                            <button
+                                class="source-btn active"
+                                id="btn-matrix-compact"
+                                onclick="setMatrixView('compact')"
+                            >
+                                Compact
+                            </button>
+                            <button
+                                class="source-btn"
+                                id="btn-matrix-precise"
+                                onclick="setMatrixView('precise')"
+                            >
+                                Precise
+                            </button>
+                        </div>
                         <div class="matrix-legend">
                             <span
                                 style="
@@ -1071,8 +1147,12 @@
                                 <span>30-59%</span>
                             </div>
                             <div class="legend-item">
+                                <span class="legend-color orange"></span>
+                                <span>&gt;0% and &lt;30%</span>
+                            </div>
+                            <div class="legend-item">
                                 <span class="legend-color low"></span>
-                                <span>&lt;30%</span>
+                                <span>0%</span>
                             </div>
                             <div class="legend-item">
                                 <span class="legend-color empty"></span>
@@ -1374,6 +1454,7 @@
             // ==========================================
             let allGames = [];
             let currentSource = "merged"; // Default to merged
+            let matrixViewMode = "compact"; // Default to compact
 
             async function loadGames() {
                 allGames = [];
@@ -1960,6 +2041,26 @@
                 return s.replace(/'/g, "\\\\'").replace(/"/g, '\\\\"');
             }
 
+            function setMatrixView(viewMode) {
+                if (matrixViewMode === viewMode) return;
+                matrixViewMode = viewMode;
+
+                // Update active states
+                document
+                    .getElementById("btn-matrix-compact")
+                    .classList.toggle("active", viewMode === "compact");
+                document
+                    .getElementById("btn-matrix-precise")
+                    .classList.toggle("active", viewMode === "precise");
+
+                renderMatrix(allGames);
+            }
+
+            function capitalize(str) {
+                if (!str) return "";
+                return str.charAt(0).toUpperCase() + str.slice(1);
+            }
+
             function focusLeaderboardGroup(model, reasoning, elo) {
                 const selector = `tr[data-model="${model}"][data-reasoning="${reasoning}"][data-elo="${elo}"]`;
                 const tr = document.querySelector(selector);
@@ -2063,114 +2164,243 @@
                     },
                 );
 
-                // Reasoning order ranking
-                const reasoningOrder = {
-                    none: 1,
-                    default: 2,
-                    low: 3,
-                    medium: 4,
-                    high: 5,
-                };
-                function sortReasoning(a, b) {
-                    return (
-                        (reasoningOrder[a] || 99) - (reasoningOrder[b] || 99)
-                    );
-                }
-
-                // Flatten to a list of columns
-                const columns = [];
-                sortedModels.forEach((model) => {
-                    const efforts = Array.from(modelReasoningMap[model]).sort(
-                        sortReasoning,
-                    );
-                    efforts.forEach((effort, index) => {
-                        columns.push({
-                            model: model,
-                            effort: effort,
-                            isFirstOfModel: index === 0,
-                            spanCount: efforts.length,
-                        });
-                    });
-                });
-
-                // Build Table HTML
                 let html = '<table class="matrix-table">';
 
-                // Row 1 Header: Models
-                html +=
-                    '<thead><tr><th rowspan="2" style="vertical-align: middle;">Stockfish ELO</th>';
-                sortedModels.forEach((model) => {
-                    const span = modelReasoningMap[model].size;
-                    const provider = getProvider(model);
-                    html += `<th colspan="${span}" class="model-header-cell border-left-group">
-                        <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
-                            <span class="provider-badge provider-${provider}" style="font-size:8px; padding:1px 6px;">${provider}</span>
-                            <span style="font-size:12px; font-weight:700;">${escHtml(model)}</span>
-                        </div>
-                    </th>`;
-                });
-                html += "</tr>";
+                if (matrixViewMode === "compact") {
+                    // Header Row: Models
+                    html += '<thead><tr><th style="vertical-align: middle;">Stockfish ELO</th>';
+                    sortedModels.forEach((model) => {
+                        const provider = getProvider(model);
+                        html += `<th class="model-header-cell border-left-group" style="vertical-align: middle;">
+                            <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
+                                <span class="provider-badge provider-${provider}" style="font-size:8px; padding:1px 6px;">${provider}</span>
+                                <span style="font-size:12px; font-weight:700;">${escHtml(model)}</span>
+                            </div>
+                        </th>`;
+                    });
+                    html += "</tr></thead><tbody>";
 
-                // Row 2 Header: Reasoning Effort
-                html += "<tr>";
-                columns.forEach((col) => {
-                    const classList = col.isFirstOfModel
-                        ? "reasoning-header-cell border-left-group"
-                        : "reasoning-header-cell";
-                    const effortClass = `reasoning-${col.effort}`;
-                    html += `<th class="${classList}"><span class="reasoning-badge ${effortClass}" style="font-size:9px; padding:2px 6px;">${col.effort}</span></th>`;
-                });
-                html += "</tr></thead><tbody>";
+                    // Data Rows: ELO levels
+                    elos.forEach((elo) => {
+                        html += `<tr><td class="elo-label-cell">⚡ ${elo}</td>`;
 
-                // Data Rows: ELO levels
-                elos.forEach((elo) => {
-                    html += `<tr><td class="elo-label-cell">⚡ ${elo}</td>`;
+                        sortedModels.forEach((model) => {
+                            const cellGames = games.filter(
+                                (g) => g.elo === elo && g.llmModel === model
+                            );
 
-                    columns.forEach((col) => {
-                        const cellGames = games.filter(
-                            (g) =>
-                                g.elo === elo &&
-                                g.llmModel === col.model &&
-                                g.reasoningEffort === col.effort,
+                            const tdClassList = ["border-left-group"];
+
+                            if (cellGames.length === 0) {
+                                tdClassList.push("matrix-cell cell-empty");
+                                html += `<td class="${tdClassList.join(" ")}">—</td>`;
+                            } else {
+                                const wins = cellGames.filter((g) => g.llmResult === "win").length;
+                                const draws = cellGames.filter((g) => g.llmResult === "draw").length;
+                                const losses = cellGames.filter((g) => g.llmResult === "loss").length;
+                                const total = cellGames.length;
+                                const overallWinRate = ((wins + 0.5 * draws) / total) * 100;
+
+                                let perfClass = "cell-low";
+                                if (overallWinRate >= 60) perfClass = "cell-high";
+                                else if (overallWinRate >= 30) perfClass = "cell-med";
+                                else if (overallWinRate > 0) perfClass = "cell-orange";
+
+                                tdClassList.push("matrix-cell cell-compact");
+                                tdClassList.push(perfClass);
+
+                                // Format subparts
+                                const highGames = cellGames.filter(g => g.reasoningEffort.toLowerCase() === "high");
+                                let subPartsHtml = '<div class="matrix-cell-compact-content">';
+                                let hasSubParts = false;
+
+                                // 1. High Part
+                                if (highGames.length > 0) {
+                                    const hWins = highGames.filter(g => g.llmResult === "win").length;
+                                    const hDraws = highGames.filter(g => g.llmResult === "draw").length;
+                                    const hTotal = highGames.length;
+                                    const hWinRate = ((hWins + 0.5 * hDraws) / hTotal) * 100;
+                                    const hAcc = hWinRate.toFixed(0) + "%";
+
+                                    let hColorClass = "text-low";
+                                    if (hWinRate >= 60) hColorClass = "text-high";
+                                    else if (hWinRate >= 30) hColorClass = "text-med";
+                                    else if (hWinRate > 0) hColorClass = "text-orange";
+
+                                    const highPartHtml = `<div class="sub-part-row" onclick="event.stopPropagation(); focusLeaderboardGroup('${escJs(model)}', 'high', ${elo})" title="Click to view games for ${escHtml(model)} (High) at ELO ${elo}">
+                                        <span class="sub-part-label">High</span>
+                                        <span class="sub-part-value ${hColorClass}">${hAcc}</span>
+                                    </div>`;
+                                    subPartsHtml += highPartHtml;
+                                    hasSubParts = true;
+                                }
+
+                                // 2. Non-high Parts
+                                const nonHighEfforts = ["medium", "low", "default", "none"];
+                                const nonHighGroups = {}; // key: accuracy string, value: { efforts: [], winRate: number }
+
+                                nonHighEfforts.forEach((eff) => {
+                                    const effGames = cellGames.filter(
+                                        (g) => g.reasoningEffort.toLowerCase() === eff
+                                    );
+                                    if (effGames.length > 0) {
+                                        const eWins = effGames.filter((g) => g.llmResult === "win").length;
+                                        const eDraws = effGames.filter((g) => g.llmResult === "draw").length;
+                                        const eTotal = effGames.length;
+                                        const eWinRate = ((eWins + 0.5 * eDraws) / eTotal) * 100;
+                                        const eAcc = eWinRate.toFixed(0) + "%";
+
+                                        if (!nonHighGroups[eAcc]) {
+                                            nonHighGroups[eAcc] = {
+                                                efforts: [],
+                                                winRate: eWinRate
+                                            };
+                                        }
+                                        nonHighGroups[eAcc].efforts.push(capitalize(eff));
+                                    }
+                                });
+
+                                const sortedAccuracies = Object.keys(nonHighGroups).sort((a, b) => {
+                                    return nonHighGroups[b].winRate - nonHighGroups[a].winRate;
+                                });
+
+                                sortedAccuracies.forEach((accuracy) => {
+                                    const group = nonHighGroups[accuracy];
+                                    const effortsStr = group.efforts.join(", ");
+                                    let effColorClass = "text-low";
+                                    if (group.winRate >= 60) effColorClass = "text-high";
+                                    else if (group.winRate >= 30) effColorClass = "text-med";
+                                    else if (group.winRate > 0) effColorClass = "text-orange";
+
+                                    const focusEffort = group.efforts[0].toLowerCase();
+
+                                    subPartsHtml += `<div class="sub-part-row" onclick="event.stopPropagation(); focusLeaderboardGroup('${escJs(model)}', '${escJs(focusEffort)}', ${elo})" title="Click to view games for ${escHtml(model)} (${effortsStr}) at ELO ${elo}">
+                                        <span class="sub-part-label">${effortsStr}</span>
+                                        <span class="sub-part-value ${effColorClass}">${accuracy}</span>
+                                    </div>`;
+                                    hasSubParts = true;
+                                });
+
+                                subPartsHtml += '</div>';
+
+                                const recordStr = `${wins}W-${draws}D-${losses}L`;
+                                const defaultFocusEffort = highGames.length > 0 ? "high" : (sortedAccuracies.length > 0 ? nonHighGroups[sortedAccuracies[0]].efforts[0].toLowerCase() : "");
+
+                                html += `<td class="${tdClassList.join(" ")}" onclick="focusLeaderboardGroup('${escJs(model)}', '${escJs(defaultFocusEffort)}', ${elo})" title="${escHtml(model)} at ELO ${elo}: ${recordStr} in ${total} games">
+                                    ${subPartsHtml}
+                                </td>`;
+                            }
+                        });
+                        html += "</tr>";
+                    });
+                } else {
+                    // Precise View (Original Layout)
+                    const reasoningOrder = {
+                        none: 1,
+                        default: 2,
+                        low: 3,
+                        medium: 4,
+                        high: 5,
+                    };
+                    function sortReasoning(a, b) {
+                        return (
+                            (reasoningOrder[a] || 99) - (reasoningOrder[b] || 99)
                         );
-                        const isFirst = col.isFirstOfModel;
-                        const tdClassList = [];
-                        if (isFirst) tdClassList.push("border-left-group");
+                    }
 
-                        if (cellGames.length === 0) {
-                            tdClassList.push("matrix-cell cell-empty");
-                            html += `<td class="${tdClassList.join(" ")}">—</td>`;
-                        } else {
-                            const wins = cellGames.filter(
-                                (g) => g.llmResult === "win",
-                            ).length;
-                            const draws = cellGames.filter(
-                                (g) => g.llmResult === "draw",
-                            ).length;
-                            const losses = cellGames.filter(
-                                (g) => g.llmResult === "loss",
-                            ).length;
-                            const total = cellGames.length;
-                            const winRate =
-                                ((wins + 0.5 * draws) / total) * 100;
-
-                            let perfClass = "cell-low";
-                            if (winRate >= 60) perfClass = "cell-high";
-                            else if (winRate >= 30) perfClass = "cell-med";
-
-                            tdClassList.push("matrix-cell");
-                            tdClassList.push(perfClass);
-
-                            const recordStr = `${wins}W-${draws}D-${losses}L`;
-                            html += `<td class="${tdClassList.join(" ")}" onclick="focusLeaderboardGroup('${escJs(col.model)}', '${escJs(col.effort)}', ${elo})" title="${escHtml(col.model)} (${col.effort}) at ELO ${elo}: ${recordStr} in ${total} games">
-                                <span style="font-size: 13px;">${winRate.toFixed(0)}%</span>
-                                <span class="cell-record">${recordStr}</span>
-                            </td>`;
-                        }
+                    // Flatten to a list of columns
+                    const columns = [];
+                    sortedModels.forEach((model) => {
+                        const efforts = Array.from(modelReasoningMap[model]).sort(
+                            sortReasoning,
+                        );
+                        efforts.forEach((effort, index) => {
+                            columns.push({
+                                model: model,
+                                effort: effort,
+                                isFirstOfModel: index === 0,
+                                spanCount: efforts.length,
+                            });
+                        });
                     });
 
+                    // Row 1 Header: Models
+                    html +=
+                        '<thead><tr><th rowspan="2" style="vertical-align: middle;">Stockfish ELO</th>';
+                    sortedModels.forEach((model) => {
+                        const span = modelReasoningMap[model].size;
+                        const provider = getProvider(model);
+                        html += `<th colspan="${span}" class="model-header-cell border-left-group">
+                            <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
+                                <span class="provider-badge provider-${provider}" style="font-size:8px; padding:1px 6px;">${provider}</span>
+                                <span style="font-size:12px; font-weight:700;">${escHtml(model)}</span>
+                            </div>
+                        </th>`;
+                    });
                     html += "</tr>";
-                });
+
+                    // Row 2 Header: Reasoning Effort
+                    html += "<tr>";
+                    columns.forEach((col) => {
+                        const classList = col.isFirstOfModel
+                            ? "reasoning-header-cell border-left-group"
+                            : "reasoning-header-cell";
+                        const effortClass = `reasoning-${col.effort}`;
+                        html += `<th class="${classList}"><span class="reasoning-badge ${effortClass}" style="font-size:9px; padding:2px 6px;">${col.effort}</span></th>`;
+                    });
+                    html += "</tr></thead><tbody>";
+
+                    // Data Rows: ELO levels
+                    elos.forEach((elo) => {
+                        html += `<tr><td class="elo-label-cell">⚡ ${elo}</td>`;
+
+                        columns.forEach((col) => {
+                            const cellGames = games.filter(
+                                (g) =>
+                                    g.elo === elo &&
+                                    g.llmModel === col.model &&
+                                    g.reasoningEffort === col.effort,
+                            );
+                            const isFirst = col.isFirstOfModel;
+                            const tdClassList = [];
+                            if (isFirst) tdClassList.push("border-left-group");
+
+                            if (cellGames.length === 0) {
+                                tdClassList.push("matrix-cell cell-empty");
+                                html += `<td class="${tdClassList.join(" ")}">—</td>`;
+                            } else {
+                                const wins = cellGames.filter(
+                                    (g) => g.llmResult === "win",
+                                ).length;
+                                const draws = cellGames.filter(
+                                    (g) => g.llmResult === "draw",
+                                ).length;
+                                const losses = cellGames.filter(
+                                    (g) => g.llmResult === "loss",
+                                ).length;
+                                const total = cellGames.length;
+                                const winRate =
+                                    ((wins + 0.5 * draws) / total) * 100;
+
+                                let perfClass = "cell-low";
+                                if (winRate >= 60) perfClass = "cell-high";
+                                else if (winRate >= 30) perfClass = "cell-med";
+                                else if (winRate > 0) perfClass = "cell-orange";
+
+                                tdClassList.push("matrix-cell");
+                                tdClassList.push(perfClass);
+
+                                const recordStr = `${wins}W-${draws}D-${losses}L`;
+                                html += `<td class="${tdClassList.join(" ")}" onclick="focusLeaderboardGroup('${escJs(col.model)}', '${escJs(col.effort)}', ${elo})" title="${escHtml(col.model)} (${col.effort}) at ELO ${elo}: ${recordStr} in ${total} games">
+                                    <span style="font-size: 13px;">${winRate.toFixed(0)}%</span>
+                                    <span class="cell-record">${recordStr}</span>
+                                </td>`;
+                            }
+                        });
+
+                        html += "</tr>";
+                    });
+                }
 
                 html += "</tbody></table>";
                 container.innerHTML = html;
