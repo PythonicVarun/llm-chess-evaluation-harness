@@ -1,6 +1,15 @@
 <!doctype html>
 <html lang="en">
     <head>
+        <script>
+            // Initialize theme immediately to avoid flash of dark theme
+            (function () {
+                const savedTheme = localStorage.getItem("theme");
+                if (savedTheme === "light") {
+                    document.documentElement.classList.add("light-theme");
+                }
+            })();
+        </script>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>LLM Chess Evaluation — Leaderboard</title>
@@ -1040,10 +1049,198 @@
             .text-low {
                 color: var(--red) !important;
             }
+
+            /* ===== Light Theme Styles ===== */
+            html.light-theme {
+                --bg-primary: #f8fafc;
+                --bg-secondary: #f1f5f9;
+                --bg-card: #ffffff;
+                --bg-card-hover: #f1f5f9;
+                --bg-modal: rgba(15, 23, 42, 0.4);
+                --surface: #e2e8f0;
+                --border: #cbd5e1;
+                --border-glow: rgba(99, 102, 241, 0.15);
+                --text-primary: #0f172a;
+                --text-secondary: #475569;
+                --text-muted: #94a3b8;
+                --accent: #4f46e5;
+                --accent-glow: rgba(79, 70, 229, 0.1);
+
+                --green: #16a34a;
+                --green-bg: rgba(22, 163, 74, 0.12);
+                --red: #dc2626;
+                --red-bg: rgba(220, 38, 38, 0.12);
+                --yellow: #d97706;
+                --yellow-bg: rgba(234, 179, 8, 0.12);
+                --orange: #ea580c;
+                --orange-bg: rgba(234, 88, 12, 0.12);
+                --blue: #2563eb;
+                --purple: #7c3aed;
+
+                --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+                --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.06);
+                --shadow-lg: 0 16px 48px rgba(15, 23, 42, 0.1);
+                --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.06);
+            }
+
+            html.light-theme .bg-grid {
+                background-image:
+                    radial-gradient(
+                        circle at 20% 30%,
+                        rgba(99, 102, 241, 0.04) 0%,
+                        transparent 50%
+                    ),
+                    radial-gradient(
+                        circle at 80% 70%,
+                        rgba(167, 139, 250, 0.03) 0%,
+                        transparent 50%
+                    ),
+                    linear-gradient(rgba(0, 0, 0, 0.02) 1px, transparent 1px),
+                    linear-gradient(
+                        90deg,
+                        rgba(0, 0, 0, 0.02) 1px,
+                        transparent 1px
+                    );
+            }
+
+            html.light-theme .leaderboard-table tr:hover {
+                background: rgba(0, 0, 0, 0.02);
+            }
+
+            html.light-theme .reasoning-default {
+                background: rgba(0, 0, 0, 0.04);
+            }
+
+            html.light-theme .matrix-legend {
+                background: rgba(0, 0, 0, 0.02);
+            }
+
+            html.light-theme .matrix-table td.matrix-cell.cell-empty {
+                background: rgba(0, 0, 0, 0.02);
+            }
+
+            html.light-theme .sub-part-row {
+                background: rgba(0, 0, 0, 0.03);
+                border: 1px solid rgba(0, 0, 0, 0.04);
+            }
+            html.light-theme .sub-part-row:hover {
+                background: rgba(0, 0, 0, 0.06);
+                border-color: rgba(0, 0, 0, 0.08);
+            }
+
+            /* ===== Page transitions for theme toggle ===== */
+            /* Only apply transitions if View Transitions are not supported, otherwise View Transitions will handle the radial reveal. */
+            @supports not (view-transition-name: root) {
+                body,
+                .container,
+                .header,
+                .stat-card,
+                .table-wrapper,
+                .matrix-table th,
+                .matrix-table td,
+                .leaderboard-table th,
+                .leaderboard-table td,
+                .modal,
+                .game-meta,
+                .move-list-container,
+                .sub-part-row,
+                .theme-toggle-btn,
+                .matrix-legend,
+                .source-selector,
+                .source-btn {
+                    transition:
+                        background 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                        background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                        border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                        color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                        box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+            }
+
+            /* ===== View Transition Animations ===== */
+            ::view-transition-old(root),
+            ::view-transition-new(root) {
+                animation: none;
+                mix-blend-mode: normal;
+            }
+            ::view-transition-new(root) {
+                z-index: 9999;
+            }
+            ::view-transition-old(root) {
+                z-index: 1;
+            }
+
+            /* ===== Floating Theme Toggle Button ===== */
+            .theme-toggle-btn {
+                position: fixed;
+                top: 24px;
+                right: 24px;
+                z-index: 1000;
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                background: var(--bg-secondary);
+                border: 1px solid var(--border);
+                color: var(--text-primary);
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                overflow: hidden;
+                box-shadow: var(--shadow-sm);
+            }
+            .theme-toggle-btn:hover {
+                transform: scale(1.1);
+                border-color: var(--accent);
+                box-shadow: var(--shadow-glow);
+            }
+            .theme-toggle-btn:active {
+                transform: scale(0.95);
+            }
+
+            .theme-toggle-btn span {
+                position: absolute;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                height: 100%;
+                transition:
+                    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                    opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            /* Icon rotation & scaling animation */
+            .sun-icon {
+                opacity: 0;
+                transform: rotate(90deg) scale(0);
+            }
+            .moon-icon {
+                opacity: 1;
+                transform: rotate(0) scale(1);
+            }
+            .light-theme .sun-icon {
+                opacity: 1;
+                transform: rotate(0) scale(1);
+            }
+            .light-theme .moon-icon {
+                opacity: 0;
+                transform: rotate(-90deg) scale(0);
+            }
         </style>
     </head>
     <body>
         <div class="bg-grid"></div>
+        <button
+            id="theme-toggle"
+            class="theme-toggle-btn"
+            aria-label="Toggle theme"
+            onclick="toggleTheme(event)"
+        >
+            <span class="sun-icon">☀️</span>
+            <span class="moon-icon">🌙</span>
+        </button>
 
         <div class="container">
             <!-- Header -->
@@ -1113,7 +1310,7 @@
                                 active cell to inspect details.
                             </p>
                         </div>
-                        <div class="source-selector" style="margin-right: 8px;">
+                        <div class="source-selector" style="margin-right: 8px">
                             <button
                                 class="source-btn active"
                                 id="btn-matrix-compact"
@@ -2041,6 +2238,67 @@
                 return s.replace(/'/g, "\\\\'").replace(/"/g, '\\\\"');
             }
 
+            function toggleTheme(event) {
+                const isTransitionable =
+                    document.startViewTransition &&
+                    !window.matchMedia("(prefers-reduced-motion: reduce)")
+                        .matches;
+
+                if (!isTransitionable) {
+                    const isLight =
+                        document.documentElement.classList.toggle(
+                            "light-theme",
+                        );
+                    localStorage.setItem("theme", isLight ? "light" : "dark");
+                    return;
+                }
+
+                // Get click coordinates (or fall back to button coordinates)
+                let x = window.innerWidth / 2;
+                let y = window.innerHeight / 2;
+
+                if (event) {
+                    x = event.clientX;
+                    y = event.clientY;
+                } else {
+                    const button = document.getElementById("theme-toggle");
+                    if (button) {
+                        const rect = button.getBoundingClientRect();
+                        x = rect.left + rect.width / 2;
+                        y = rect.top + rect.height / 2;
+                    }
+                }
+
+                const endRadius = Math.hypot(
+                    Math.max(x, window.innerWidth - x),
+                    Math.max(y, window.innerHeight - y),
+                );
+
+                const transition = document.startViewTransition(() => {
+                    const isLight =
+                        document.documentElement.classList.toggle(
+                            "light-theme",
+                        );
+                    localStorage.setItem("theme", isLight ? "light" : "dark");
+                });
+
+                transition.ready.then(() => {
+                    document.documentElement.animate(
+                        {
+                            clipPath: [
+                                `circle(0px at ${x}px ${y}px)`,
+                                `circle(${endRadius}px at ${x}px ${y}px)`,
+                            ],
+                        },
+                        {
+                            duration: 650,
+                            easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+                            pseudoElement: "::view-transition-new(root)",
+                        },
+                    );
+                });
+            }
+
             function setMatrixView(viewMode) {
                 if (matrixViewMode === viewMode) return;
                 matrixViewMode = viewMode;
@@ -2168,7 +2426,8 @@
 
                 if (matrixViewMode === "compact") {
                     // Header Row: Models
-                    html += '<thead><tr><th style="vertical-align: middle;">Stockfish ELO</th>';
+                    html +=
+                        '<thead><tr><th style="vertical-align: middle;">Stockfish ELO</th>';
                     sortedModels.forEach((model) => {
                         const provider = getProvider(model);
                         html += `<th class="model-header-cell border-left-group" style="vertical-align: middle;">
@@ -2186,7 +2445,7 @@
 
                         sortedModels.forEach((model) => {
                             const cellGames = games.filter(
-                                (g) => g.elo === elo && g.llmModel === model
+                                (g) => g.elo === elo && g.llmModel === model,
                             );
 
                             const tdClassList = ["border-left-group"];
@@ -2195,37 +2454,60 @@
                                 tdClassList.push("matrix-cell cell-empty");
                                 html += `<td class="${tdClassList.join(" ")}">—</td>`;
                             } else {
-                                const wins = cellGames.filter((g) => g.llmResult === "win").length;
-                                const draws = cellGames.filter((g) => g.llmResult === "draw").length;
-                                const losses = cellGames.filter((g) => g.llmResult === "loss").length;
+                                const wins = cellGames.filter(
+                                    (g) => g.llmResult === "win",
+                                ).length;
+                                const draws = cellGames.filter(
+                                    (g) => g.llmResult === "draw",
+                                ).length;
+                                const losses = cellGames.filter(
+                                    (g) => g.llmResult === "loss",
+                                ).length;
                                 const total = cellGames.length;
-                                const overallWinRate = ((wins + 0.5 * draws) / total) * 100;
+                                const overallWinRate =
+                                    ((wins + 0.5 * draws) / total) * 100;
 
                                 let perfClass = "cell-low";
-                                if (overallWinRate >= 60) perfClass = "cell-high";
-                                else if (overallWinRate >= 30) perfClass = "cell-med";
-                                else if (overallWinRate > 0) perfClass = "cell-orange";
+                                if (overallWinRate >= 60)
+                                    perfClass = "cell-high";
+                                else if (overallWinRate >= 30)
+                                    perfClass = "cell-med";
+                                else if (overallWinRate > 0)
+                                    perfClass = "cell-orange";
 
                                 tdClassList.push("matrix-cell cell-compact");
                                 tdClassList.push(perfClass);
 
                                 // Format subparts
-                                const highGames = cellGames.filter(g => g.reasoningEffort.toLowerCase() === "high");
-                                let subPartsHtml = '<div class="matrix-cell-compact-content">';
+                                const highGames = cellGames.filter(
+                                    (g) =>
+                                        g.reasoningEffort.toLowerCase() ===
+                                        "high",
+                                );
+                                let subPartsHtml =
+                                    '<div class="matrix-cell-compact-content">';
                                 let hasSubParts = false;
 
                                 // 1. High Part
                                 if (highGames.length > 0) {
-                                    const hWins = highGames.filter(g => g.llmResult === "win").length;
-                                    const hDraws = highGames.filter(g => g.llmResult === "draw").length;
+                                    const hWins = highGames.filter(
+                                        (g) => g.llmResult === "win",
+                                    ).length;
+                                    const hDraws = highGames.filter(
+                                        (g) => g.llmResult === "draw",
+                                    ).length;
                                     const hTotal = highGames.length;
-                                    const hWinRate = ((hWins + 0.5 * hDraws) / hTotal) * 100;
+                                    const hWinRate =
+                                        ((hWins + 0.5 * hDraws) / hTotal) * 100;
                                     const hAcc = hWinRate.toFixed(0) + "%";
 
                                     let hColorClass = "text-low";
-                                    if (hWinRate >= 60) hColorClass = "text-high";
-                                    else if (hWinRate >= 30) hColorClass = "text-med";
-                                    else if (hWinRate > 0) hColorClass = "text-orange";
+                                    if (hWinRate >= 60)
+                                        hColorClass = "text-high";
+                                    else if (hWinRate >= 30)
+                                        hColorClass = "text-med";
+                                    else if (hWinRate > 0)
+                                        hColorClass = "text-orange";
 
                                     const highPartHtml = `<div class="sub-part-row" onclick="event.stopPropagation(); focusLeaderboardGroup('${escJs(model)}', 'high', ${elo})" title="Click to view games for ${escHtml(model)} (High) at ELO ${elo}">
                                         <span class="sub-part-label">High</span>
@@ -2236,43 +2518,67 @@
                                 }
 
                                 // 2. Non-high Parts
-                                const nonHighEfforts = ["medium", "low", "default", "none"];
+                                const nonHighEfforts = [
+                                    "medium",
+                                    "low",
+                                    "default",
+                                    "none",
+                                ];
                                 const nonHighGroups = {}; // key: accuracy string, value: { efforts: [], winRate: number }
 
                                 nonHighEfforts.forEach((eff) => {
                                     const effGames = cellGames.filter(
-                                        (g) => g.reasoningEffort.toLowerCase() === eff
+                                        (g) =>
+                                            g.reasoningEffort.toLowerCase() ===
+                                            eff,
                                     );
                                     if (effGames.length > 0) {
-                                        const eWins = effGames.filter((g) => g.llmResult === "win").length;
-                                        const eDraws = effGames.filter((g) => g.llmResult === "draw").length;
+                                        const eWins = effGames.filter(
+                                            (g) => g.llmResult === "win",
+                                        ).length;
+                                        const eDraws = effGames.filter(
+                                            (g) => g.llmResult === "draw",
+                                        ).length;
                                         const eTotal = effGames.length;
-                                        const eWinRate = ((eWins + 0.5 * eDraws) / eTotal) * 100;
+                                        const eWinRate =
+                                            ((eWins + 0.5 * eDraws) / eTotal) *
+                                            100;
                                         const eAcc = eWinRate.toFixed(0) + "%";
 
                                         if (!nonHighGroups[eAcc]) {
                                             nonHighGroups[eAcc] = {
                                                 efforts: [],
-                                                winRate: eWinRate
+                                                winRate: eWinRate,
                                             };
                                         }
-                                        nonHighGroups[eAcc].efforts.push(capitalize(eff));
+                                        nonHighGroups[eAcc].efforts.push(
+                                            capitalize(eff),
+                                        );
                                     }
                                 });
 
-                                const sortedAccuracies = Object.keys(nonHighGroups).sort((a, b) => {
-                                    return nonHighGroups[b].winRate - nonHighGroups[a].winRate;
+                                const sortedAccuracies = Object.keys(
+                                    nonHighGroups,
+                                ).sort((a, b) => {
+                                    return (
+                                        nonHighGroups[b].winRate -
+                                        nonHighGroups[a].winRate
+                                    );
                                 });
 
                                 sortedAccuracies.forEach((accuracy) => {
                                     const group = nonHighGroups[accuracy];
                                     const effortsStr = group.efforts.join(", ");
                                     let effColorClass = "text-low";
-                                    if (group.winRate >= 60) effColorClass = "text-high";
-                                    else if (group.winRate >= 30) effColorClass = "text-med";
-                                    else if (group.winRate > 0) effColorClass = "text-orange";
+                                    if (group.winRate >= 60)
+                                        effColorClass = "text-high";
+                                    else if (group.winRate >= 30)
+                                        effColorClass = "text-med";
+                                    else if (group.winRate > 0)
+                                        effColorClass = "text-orange";
 
-                                    const focusEffort = group.efforts[0].toLowerCase();
+                                    const focusEffort =
+                                        group.efforts[0].toLowerCase();
 
                                     subPartsHtml += `<div class="sub-part-row" onclick="event.stopPropagation(); focusLeaderboardGroup('${escJs(model)}', '${escJs(focusEffort)}', ${elo})" title="Click to view games for ${escHtml(model)} (${effortsStr}) at ELO ${elo}">
                                         <span class="sub-part-label">${effortsStr}</span>
@@ -2281,10 +2587,17 @@
                                     hasSubParts = true;
                                 });
 
-                                subPartsHtml += '</div>';
+                                subPartsHtml += "</div>";
 
                                 const recordStr = `${wins}W-${draws}D-${losses}L`;
-                                const defaultFocusEffort = highGames.length > 0 ? "high" : (sortedAccuracies.length > 0 ? nonHighGroups[sortedAccuracies[0]].efforts[0].toLowerCase() : "");
+                                const defaultFocusEffort =
+                                    highGames.length > 0
+                                        ? "high"
+                                        : sortedAccuracies.length > 0
+                                          ? nonHighGroups[
+                                                sortedAccuracies[0]
+                                            ].efforts[0].toLowerCase()
+                                          : "";
 
                                 html += `<td class="${tdClassList.join(" ")}" onclick="focusLeaderboardGroup('${escJs(model)}', '${escJs(defaultFocusEffort)}', ${elo})" title="${escHtml(model)} at ELO ${elo}: ${recordStr} in ${total} games">
                                     ${subPartsHtml}
@@ -2304,16 +2617,17 @@
                     };
                     function sortReasoning(a, b) {
                         return (
-                            (reasoningOrder[a] || 99) - (reasoningOrder[b] || 99)
+                            (reasoningOrder[a] || 99) -
+                            (reasoningOrder[b] || 99)
                         );
                     }
 
                     // Flatten to a list of columns
                     const columns = [];
                     sortedModels.forEach((model) => {
-                        const efforts = Array.from(modelReasoningMap[model]).sort(
-                            sortReasoning,
-                        );
+                        const efforts = Array.from(
+                            modelReasoningMap[model],
+                        ).sort(sortReasoning);
                         efforts.forEach((effort, index) => {
                             columns.push({
                                 model: model,
