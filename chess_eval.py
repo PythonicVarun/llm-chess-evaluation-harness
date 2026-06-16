@@ -716,7 +716,10 @@ def _print_summary(results: list[GameResult], cfg: EvalConfig, log_file: Path) -
     # Calculate cost
     model_name = cfg.llm_model
     pricing = cfg.model_pricing.get(
-        model_name, cfg.model_pricing.get(model_name.split("/", 1)[1], None)
+        model_name,
+        cfg.model_pricing.get(
+            model_name.split("/", 1)[1] if "/" in model_name else model_name, None
+        ),
     )
     if pricing is None:
         # Fallback search - case insensitive or substring

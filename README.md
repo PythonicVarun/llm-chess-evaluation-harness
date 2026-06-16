@@ -112,6 +112,7 @@ Below is a summary of the matches played between various LLM models and Stockfis
 | :------------------------ | :-------: | :-----------: | :--: | :----: | :---: | :---------: | :------: |
 | **gemini-3.5-flash**      |  default  |     2000      |  0   |   3    |   0   |      3      |   0.0%   |
 | **gpt-5.5**               |   none    |     2000      |  0   |   3    |   0   |      3      |   0.0%   |
+| **gemini-3.5-flash**      |  default  |     1900      |  0   |   2    |   1   |      3      |   0.0%   |
 | **gpt-5.5**               |   none    |     1900      |  0   |   2    |   1   |      3      |   0.0%   |
 | **gemini-3.5-flash**      |  default  |     1800      |  1   |   1    |   1   |      3      |  33.3%   |
 | **gpt-5.5**               |   none    |     1700      |  0   |   2    |   1   |      3      |   0.0%   |
