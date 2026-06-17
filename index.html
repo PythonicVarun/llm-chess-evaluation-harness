@@ -5,7 +5,7 @@
             // Initialize theme immediately to avoid flash of dark theme
             (function () {
                 const savedTheme = localStorage.getItem("theme");
-                if (savedTheme === "light") {
+                if (savedTheme !== "dark") {
                     document.documentElement.classList.add("light-theme");
                 }
             })();
